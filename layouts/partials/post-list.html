@@ -1,6 +1,17 @@
 <ul id="post-list" class="h-feed">
 
-{{ if or .IsHome .Site.Params.paginate_categories }}
+{{ if .IsHome }}
+	{{ $now := now }}
+	{{ $cutoff := $now.AddDate 0 0 -30 }}
+	{{ $posts := where .Pages "Type" "post" }}
+	{{ $posts = where $posts "Date" "ge" $cutoff }}
+	{{ $posts = where $posts "Date" "le" $now }}
+	{{ $paginator := .Paginate $posts.ByDate.Reverse }}
+	{{ $list := $paginator.Pages }}
+	{{ range $list  }}
+		{{ partial "post-item.html" . }}
+	{{ end }}
+{{ else if .Site.Params.paginate_categories }}
 	{{ $paginator := .Paginate (where .Pages.ByDate.Reverse "Type" "post") }}
 	{{ $list := $paginator.Pages }}
 	{{ range $list  }}
