@@ -13,48 +13,6 @@
       {{- end -}}
   </title>
 
-  <script>
-    (function () {
-      var preference = null;
-      try {
-        preference = localStorage.getItem("site-theme");
-      } catch (error) {}
-      var systemTheme = window.matchMedia("(prefers-color-scheme: dark)");
-      var applyTheme = function () {
-        document.documentElement.dataset.theme = preference || (systemTheme.matches ? "dark" : "light");
-      };
-      applyTheme();
-      var updateForSystemTheme = function () {
-        if (!preference) applyTheme();
-      };
-      if (systemTheme.addEventListener) {
-        systemTheme.addEventListener("change", updateForSystemTheme);
-      } else if (systemTheme.addListener) {
-        systemTheme.addListener(updateForSystemTheme);
-      }
-      document.addEventListener("DOMContentLoaded", function () {
-        var toggle = document.querySelector(".theme-toggle");
-        if (!toggle) return;
-        var updateToggle = function () {
-          var isDark = document.documentElement.dataset.theme === "dark";
-          var label = isDark ? "Switch to light mode" : "Switch to dark mode";
-          toggle.setAttribute("aria-label", label);
-          toggle.setAttribute("title", label);
-          toggle.setAttribute("aria-pressed", String(isDark));
-        };
-        updateToggle();
-        toggle.addEventListener("click", function () {
-          preference = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
-          try {
-            localStorage.setItem("site-theme", preference);
-          } catch (error) {}
-          applyTheme();
-          updateToggle();
-        });
-      });
-    })();
-  </script>
-
   <link href="{{ "assets/css/style.css" | relURL }}?{{ .Site.Params.theme_seconds }}" rel="stylesheet">
   <link href="{{ "assets/css/highlight.css" | relURL }}?{{ .Site.Params.theme_seconds }}" rel="stylesheet">
 
