@@ -3,9 +3,12 @@
 {{ if .IsHome }}
 	{{ $now := now }}
 	{{ $cutoff := $now.AddDate 0 0 -30 }}
-	{{ $posts := where .Pages "Type" "post" }}
-	{{ $posts = where $posts "Date" "ge" $cutoff }}
-	{{ $posts = where $posts "Date" "le" $now }}
+	{{ $posts := slice }}
+	{{ range where .Pages "Type" "post" }}
+		{{ if and (ge .Date $cutoff) (le .Date $now) }}
+			{{ $posts = $posts | append . }}
+		{{ end }}
+	{{ end }}
 	{{ $paginator := .Paginate $posts.ByDate.Reverse }}
 	{{ $list := $paginator.Pages }}
 	{{ range $list  }}
