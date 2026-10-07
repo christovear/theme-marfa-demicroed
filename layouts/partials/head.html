@@ -1,18 +1,57 @@
 <head>
+  {{- $siteTitle := .Site.Title -}}
+  {{- $previewTitle := default "" .Title -}}
+  {{- $plainContent := "" -}}
+  {{- $descriptionSource := "" -}}
+  {{- $explicitDescription := "" -}}
+
+  {{- if .IsPage -}}
+    {{- $contentHTML := printf "%s" .Content -}}
+    {{- $plainContent = .Plain | htmlUnescape | replaceRE `^\s+|\s+$` "" -}}
+    {{- $descriptionSource = $plainContent -}}
+    {{- with .Params.description -}}
+      {{- $explicitDescription = printf "%s" . | plainify | htmlUnescape | replaceRE `^\s+|\s+$` "" -}}
+    {{- end -}}
+
+    {{- if not $previewTitle -}}
+      {{- $leadParagraphs := findRE `(?is)^\s*<p>\s*<a\b[^>]*>.*?</a>\s*</p>` $contentHTML 1 -}}
+      {{- if gt (len $leadParagraphs) 0 -}}
+        {{- $leadParagraph := index $leadParagraphs 0 -}}
+        {{- $previewTitle = $leadParagraph | plainify | htmlUnescape | replaceRE `^\s+|\s+$` "" -}}
+        {{- $descriptionSource = "" -}}
+        {{- $remainingHTML := replaceRE `(?is)^\s*<p>\s*<a\b[^>]*>.*?</a>\s*</p>\s*` "" $contentHTML -}}
+        {{- $remainingText := $remainingHTML | plainify | htmlUnescape | replaceRE `^\s+|\s+$` "" -}}
+        {{- if $remainingText -}}
+          {{- $descriptionSource = $remainingText -}}
+        {{- end -}}
+      {{- else if $plainContent -}}
+        {{- $sentencePattern := `(?s)^.*?[.!?]["'’”)]*([[:space:]]+|$)` -}}
+        {{- $sentences := findRE $sentencePattern $plainContent 1 -}}
+        {{- if gt (len $sentences) 0 -}}
+          {{- $firstSentence := index $sentences 0 -}}
+          {{- $previewTitle = $firstSentence | replaceRE `^\s+|\s+$` "" | truncate 110 -}}
+          {{- $descriptionSource = replaceRE $sentencePattern "" $plainContent | replaceRE `^\s+|\s+$` "" -}}
+        {{- else -}}
+          {{- $previewTitle = $plainContent | truncate 110 -}}
+          {{- $descriptionSource = "" -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+
+    {{- if $explicitDescription -}}
+      {{- $descriptionSource = $explicitDescription -}}
+    {{- end -}}
+  {{- end -}}
+
+  {{- $description := $descriptionSource | truncate 240 -}}
+
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta id="theme-color" name="theme-color" content="#fff">
   <meta content="{{ .Site.Author.name }}" name="author">
 
-  <title>
-      {{- block "title" . -}}
-		{{- .Site.Title -}}
-		{{- if and .Title (ne .Title .Site.Title) }}
-		- {{ .Title }}
-		{{- end -}}
-      {{- end -}}
-  </title>
+  <title>{{ if and $previewTitle (ne $previewTitle $siteTitle) }}{{ $previewTitle }} - {{ end }}{{ $siteTitle }}</title>
 
   <script>
     (function () {
@@ -38,4 +77,31 @@
   <link href="{{ "assets/css/highlight.css" | relURL }}?{{ .Site.Params.theme_seconds }}" rel="stylesheet">
 
 	{{ partial "microblog_head.html" . }}
+
+  {{ if .IsPage }}
+  <link rel="canonical" href="{{ .Permalink }}">
+  <meta property="og:site_name" content="{{ $siteTitle }}">
+  <meta property="og:title" content="{{ default $siteTitle $previewTitle }}">
+  <meta property="og:url" content="{{ .Permalink }}">
+  <meta property="og:type" content="{{ if eq .Type "post" }}article{{ else }}website{{ end }}">
+  {{ with $description }}
+  <meta name="description" content="{{ . }}">
+  <meta property="og:description" content="{{ . }}">
+  {{ end }}
+  {{ with .Site.Author.avatar }}
+  <meta property="og:image" content="{{ . | absURL }}">
+  <meta property="og:image:alt" content="{{ $siteTitle }}">
+  {{ end }}
+  {{ if eq .Type "post" }}
+  <meta property="article:published_time" content="{{ .PublishDate.Format "2006-01-02T15:04:05Z07:00" }}">
+  {{ end }}
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="{{ default $siteTitle $previewTitle }}">
+  {{ with $description }}
+  <meta name="twitter:description" content="{{ . }}">
+  {{ end }}
+  {{ with .Site.Author.avatar }}
+  <meta name="twitter:image" content="{{ . | absURL }}">
+  {{ end }}
+  {{ end }}
 </head>
