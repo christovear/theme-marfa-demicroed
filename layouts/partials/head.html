@@ -2,6 +2,7 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta id="theme-color" name="theme-color" content="#fff">
   <meta content="{{ .Site.Author.name }}" name="author">
 
   <title>
@@ -12,6 +13,26 @@
 		{{- end -}}
       {{- end -}}
   </title>
+
+  <script>
+    (function () {
+      var storageKey = "site-theme";
+      var savedTheme = null;
+
+      try {
+        savedTheme = localStorage.getItem(storageKey);
+      } catch (error) {}
+
+      if (savedTheme !== "dark" && savedTheme !== "light") {
+        savedTheme = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+      }
+
+      document.documentElement.setAttribute("data-theme", savedTheme);
+      document.getElementById("theme-color").setAttribute("content", savedTheme === "dark" ? "#282c34" : "#fff");
+    })();
+  </script>
 
   <link href="{{ "assets/css/style.css" | relURL }}?{{ .Site.Params.theme_seconds }}" rel="stylesheet">
   <link href="{{ "assets/css/highlight.css" | relURL }}?{{ .Site.Params.theme_seconds }}" rel="stylesheet">
