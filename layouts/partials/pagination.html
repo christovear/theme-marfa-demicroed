@@ -91,7 +91,7 @@
 		width: 2px;
 		height: var(--page-tick-height, 9px);
 		background: var(--separator);
-		transform: translateX(-50%);
+		transform: translateX(calc(-50% + var(--page-tick-offset, 0px)));
 		transition: height 90ms ease-out, background-color 90ms ease-out;
 	}
 
@@ -119,7 +119,7 @@
 		height: 44px;
 		margin: 0;
 		opacity: 0;
-		cursor: ew-resize;
+		cursor: default;
 		touch-action: pan-y;
 	}
 
@@ -161,7 +161,7 @@
 		<a class="older-posts" href="{{ $pag.Next.URL }}" rel="next">&lt; older</a>
 	{{ end }}
 	<div class="pagination-slider">
-		<output class="page-slider-output" for="page-slider-{{ $pag.PageNumber }}">Page {{ $pag.PageNumber }} of {{ $pag.TotalPages }}</output>
+		<output class="page-slider-output" for="page-slider-{{ $pag.PageNumber }}">Page {{ $pag.PageNumber }}</output>
 		<span class="page-slider-ticks" aria-hidden="true">
 			{{ range collections.Reverse $pag.Pagers }}
 				<a class="page-slider-tick{{ if eq (mod .PageNumber 5) 0 }} page-slider-tick-major{{ end }}{{ if eq .PageNumber $pag.PageNumber }} page-slider-tick-current{{ end }}" href="{{ .URL }}" data-page="{{ .PageNumber }}" tabindex="-1" aria-hidden="true"></a>
@@ -201,19 +201,21 @@
 				return ticks[clampIndex(index)].dataset.page;
 			}
 
-			function positionOutput(index) {
+			function positionOutput(index, pointerX) {
 				var target = ticks[clampIndex(index)];
-				output.textContent = "Page " + pageAt(index) + " of " + total;
+				output.textContent = "Page " + pageAt(index);
 				var sliderRect = slider.getBoundingClientRect();
 				var tickRect = target.getBoundingClientRect();
-				var x = tickRect.left + (tickRect.width / 2) - sliderRect.left;
+				var x = typeof pointerX === "number"
+					? pointerX - sliderRect.left
+					: tickRect.left + (tickRect.width / 2) - sliderRect.left;
 				var half = output.offsetWidth / 2;
 				x = Math.max(half, Math.min(sliderRect.width - half, x));
 				output.style.left = x + "px";
-				input.setAttribute("aria-valuetext", output.textContent);
+				input.setAttribute("aria-valuetext", "Page " + pageAt(index) + " of " + total);
 			}
 
-			function magnify(targetIndex) {
+			function magnify(targetIndex, pointerX) {
 				targetIndex = clampIndex(targetIndex);
 				slider.classList.add("is-interacting");
 
@@ -229,9 +231,16 @@
 						tick.style.removeProperty("--page-tick-height");
 					}
 					tick.classList.toggle("page-slider-tick-target", index === targetIndex);
+					tick.style.removeProperty("--page-tick-offset");
 				});
 
-				positionOutput(targetIndex);
+				if (typeof pointerX === "number") {
+					var targetRect = ticks[targetIndex].getBoundingClientRect();
+					var targetCenter = targetRect.left + (targetRect.width / 2);
+					ticks[targetIndex].style.setProperty("--page-tick-offset", (pointerX - targetCenter) + "px");
+				}
+
+				positionOutput(targetIndex, pointerX);
 			}
 
 			function settle(resetSelection) {
@@ -243,6 +252,7 @@
 				ticks.forEach(function (tick) {
 					tick.style.flexGrow = "1";
 					tick.style.removeProperty("--page-tick-height");
+					tick.style.removeProperty("--page-tick-offset");
 					tick.classList.remove("page-slider-tick-target");
 				});
 				slider.classList.remove("is-interacting");
@@ -250,15 +260,15 @@
 			}
 
 			function indexFromPointer(event) {
-				var rect = input.getBoundingClientRect();
+				var rect = pagination.querySelector(".page-slider-ticks").getBoundingClientRect();
 				var fraction = (event.clientX - rect.left) / rect.width;
-				return clampIndex(Math.round(fraction * (total - 1)));
+				return clampIndex(Math.round((fraction * total) - 0.5));
 			}
 
-			function chooseIndex(index) {
+			function chooseIndex(index, pointerX) {
 				selectedIndex = clampIndex(index);
 				input.value = String(selectedIndex + 1);
-				magnify(selectedIndex);
+				magnify(selectedIndex, pointerX);
 			}
 
 			function openSelectedPage() {
@@ -272,22 +282,22 @@
 			input.addEventListener("pointerdown", function (event) {
 				pointerActive = true;
 				input.setPointerCapture(event.pointerId);
-				chooseIndex(indexFromPointer(event));
+				chooseIndex(indexFromPointer(event), event.clientX);
 			});
 
 			input.addEventListener("pointermove", function (event) {
 				var index = indexFromPointer(event);
 				if (pointerActive) {
-					chooseIndex(index);
+					chooseIndex(index, event.clientX);
 				} else if (event.pointerType === "mouse") {
-					magnify(index);
+					magnify(index, event.clientX);
 				}
 			});
 
 			input.addEventListener("pointerup", function (event) {
 				if (!pointerActive) return;
 				pointerActive = false;
-				chooseIndex(indexFromPointer(event));
+				chooseIndex(indexFromPointer(event), event.clientX);
 				openSelectedPage();
 			});
 

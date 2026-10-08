@@ -717,7 +717,7 @@ video {
 	width: 2px;
 	height: var(--page-tick-height, 9px);
 	background: var(--separator);
-	transform: translateX(-50%);
+	transform: translateX(calc(-50% + var(--page-tick-offset, 0px)));
 	transition: height 90ms ease-out, background-color 90ms ease-out;
 }
 
@@ -745,7 +745,7 @@ video {
 	height: 44px;
 	margin: 0;
 	opacity: 0;
-	cursor: ew-resize;
+	cursor: default;
 	touch-action: pan-y;
 }
 
