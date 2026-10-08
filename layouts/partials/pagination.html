@@ -1,6 +1,97 @@
 {{ $pag := $.Paginator }}
 
 {{ if or $pag.HasPrev $pag.HasNext }}
+<!-- Keep these critical rules with the template because Micro.blog can retain an older static theme asset. -->
+<style>
+	.site-footer-row #footer:has(.pagination) {
+		position: static;
+		left: auto;
+		right: auto;
+		top: auto;
+		margin-bottom: 1.25em;
+	}
+
+	.pagination {
+		display: grid;
+		grid-template-areas: "older ticks newer";
+		grid-template-columns: minmax(4.5em, auto) minmax(120px, 1fr) minmax(4.5em, auto);
+		align-items: end;
+		gap: 0.75em;
+		max-width: 600px;
+		margin: 0 auto;
+		font-size: 0.9em;
+		line-height: 1.7;
+	}
+
+	.pagination .older-posts {
+		grid-area: older;
+		justify-self: start;
+		margin-left: 0;
+	}
+
+	.pagination .newer-posts {
+		grid-area: newer;
+		justify-self: end;
+	}
+
+	.pagination-tick-panel {
+		grid-area: ticks;
+		min-width: 0;
+	}
+
+	.page-ticks {
+		display: flex;
+		align-items: end;
+		height: 28px;
+	}
+
+	#footer .page-tick,
+	#footer .page-tick:hover {
+		position: relative;
+		flex: 1 1 0;
+		min-width: 3px;
+		height: 28px;
+		box-shadow: none;
+	}
+
+	.page-tick::after {
+		content: "";
+		position: absolute;
+		bottom: 0;
+		left: 50%;
+		width: 2px;
+		height: 9px;
+		background: var(--separator);
+		transform: translateX(-50%);
+		transition: height 0.2s ease, background-color 0.2s ease;
+	}
+
+	.page-tick-major::after {
+		height: 14px;
+	}
+
+	.page-tick:hover::after,
+	.page-tick:focus-visible::after {
+		height: 20px;
+		background: var(--text-muted);
+	}
+
+	.page-tick-current::after,
+	.page-tick-current:hover::after,
+	.page-tick-current:focus-visible::after {
+		width: 3px;
+		height: 27px;
+		background: var(--accent);
+	}
+
+	@media screen and (max-width: 600px) {
+		.pagination {
+			grid-template-columns: minmax(4.5em, 1fr) minmax(100px, 2fr) minmax(4.5em, 1fr);
+			gap: 0.35em;
+			font-size: 0.8em;
+		}
+	}
+</style>
 <nav class="pagination" aria-label="Blog pages, page {{ $pag.PageNumber }} of {{ $pag.TotalPages }}">
 	{{ if $pag.HasNext }}
 		<a class="older-posts" href="{{ $pag.Next.URL }}" rel="next">&lt; older</a>
