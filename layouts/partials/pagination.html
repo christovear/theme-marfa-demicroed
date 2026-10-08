@@ -1,6 +1,7 @@
 {{ $pag := $.Paginator }}
 
 {{ if or $pag.HasPrev $pag.HasNext }}
+{{ $sliderValue := add (sub $pag.TotalPages $pag.PageNumber) 1 }}
 <!-- Keep these critical rules with the template because Micro.blog can retain an older static theme asset. -->
 <style>
 	.site-footer-row #footer:has(.pagination) {
@@ -13,7 +14,7 @@
 
 	.pagination {
 		display: grid;
-		grid-template-areas: "older ticks newer";
+		grid-template-areas: "older slider newer";
 		grid-template-columns: minmax(4.5em, auto) minmax(120px, 1fr) minmax(4.5em, auto);
 		align-items: end;
 		gap: 0.75em;
@@ -34,54 +35,109 @@
 		justify-self: end;
 	}
 
-	.pagination-tick-panel {
-		grid-area: ticks;
+	.pagination-slider {
+		position: relative;
+		grid-area: slider;
 		min-width: 0;
+		height: 44px;
 	}
 
-	.page-ticks {
+	.page-slider-output {
+		position: absolute;
+		top: -1.45em;
+		z-index: 3;
+		padding: 0 0.35em;
+		color: var(--text-muted);
+		background: var(--page-bg);
+		font-size: 0.8em;
+		line-height: 1.35;
+		white-space: nowrap;
+		opacity: 0;
+		transform: translateX(-50%);
+		transition: opacity 0.15s ease;
+		pointer-events: none;
+	}
+
+	.pagination-slider.is-interacting .page-slider-output,
+	.pagination-slider:focus-within .page-slider-output {
+		opacity: 1;
+	}
+
+	.page-slider-ticks {
+		position: absolute;
+		left: 10px;
+		right: 10px;
+		bottom: 0;
 		display: flex;
 		align-items: end;
-		height: 28px;
+		height: 30px;
 	}
 
-	#footer .page-tick,
-	#footer .page-tick:hover {
+	#footer .page-slider-tick,
+	#footer .page-slider-tick:hover {
 		position: relative;
 		flex: 1 1 0;
-		min-width: 3px;
-		height: 28px;
+		min-width: 1px;
+		height: 30px;
 		box-shadow: none;
+		transition: flex-grow 90ms ease-out;
 	}
 
-	.page-tick::after {
+	.page-slider-tick::after {
 		content: "";
 		position: absolute;
 		bottom: 0;
 		left: 50%;
 		width: 2px;
-		height: 9px;
+		height: var(--page-tick-height, 9px);
 		background: var(--separator);
 		transform: translateX(-50%);
-		transition: height 0.2s ease, background-color 0.2s ease;
+		transition: height 90ms ease-out, background-color 90ms ease-out;
 	}
 
-	.page-tick-major::after {
-		height: 14px;
+	.page-slider-tick-major {
+		--page-tick-height: 14px;
 	}
 
-	.page-tick:hover::after,
-	.page-tick:focus-visible::after {
-		height: 20px;
-		background: var(--text-muted);
+	.page-slider-tick-current {
+		--page-tick-height: 27px;
 	}
 
-	.page-tick-current::after,
-	.page-tick-current:hover::after,
-	.page-tick-current:focus-visible::after {
+	.page-slider-tick-current::after,
+	.page-slider-tick-target::after {
 		width: 3px;
-		height: 27px;
 		background: var(--accent);
+	}
+
+	.page-slider-input {
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: -7px;
+		z-index: 2;
+		width: 100%;
+		height: 44px;
+		margin: 0;
+		opacity: 0;
+		cursor: ew-resize;
+		touch-action: pan-y;
+	}
+
+	.pagination-slider:focus-within {
+		outline: 2px solid var(--accent);
+		outline-offset: 3px;
+	}
+
+	.page-slider-help {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
 	}
 
 	@media screen and (max-width: 600px) {
@@ -91,20 +147,185 @@
 			font-size: 0.8em;
 		}
 	}
+
+	@media (prefers-reduced-motion: reduce) {
+		#footer .page-slider-tick,
+		.page-slider-tick::after,
+		.page-slider-output {
+			transition: none;
+		}
+	}
 </style>
 <nav class="pagination" aria-label="Blog pages, page {{ $pag.PageNumber }} of {{ $pag.TotalPages }}">
 	{{ if $pag.HasNext }}
 		<a class="older-posts" href="{{ $pag.Next.URL }}" rel="next">&lt; older</a>
 	{{ end }}
-	<div class="pagination-tick-panel">
-		<span class="page-ticks">
+	<div class="pagination-slider">
+		<output class="page-slider-output" for="page-slider-{{ $pag.PageNumber }}">Page {{ $pag.PageNumber }} of {{ $pag.TotalPages }}</output>
+		<span class="page-slider-ticks" aria-hidden="true">
 			{{ range collections.Reverse $pag.Pagers }}
-				<a class="page-tick{{ if eq (mod .PageNumber 5) 0 }} page-tick-major{{ end }}{{ if eq .PageNumber $pag.PageNumber }} page-tick-current{{ end }}" href="{{ .URL }}" aria-label="Page {{ .PageNumber }}" title="Page {{ .PageNumber }}"{{ if eq .PageNumber $pag.PageNumber }} aria-current="page"{{ end }}></a>
+				<a class="page-slider-tick{{ if eq (mod .PageNumber 5) 0 }} page-slider-tick-major{{ end }}{{ if eq .PageNumber $pag.PageNumber }} page-slider-tick-current{{ end }}" href="{{ .URL }}" data-page="{{ .PageNumber }}" tabindex="-1" aria-hidden="true"></a>
 			{{ end }}
 		</span>
+		<input class="page-slider-input" id="page-slider-{{ $pag.PageNumber }}" type="range" min="1" max="{{ $pag.TotalPages }}" step="1" value="{{ $sliderValue }}" aria-label="Choose a blog page" aria-valuetext="Page {{ $pag.PageNumber }} of {{ $pag.TotalPages }}" aria-describedby="page-slider-help-{{ $pag.PageNumber }}">
+		<span class="page-slider-help" id="page-slider-help-{{ $pag.PageNumber }}">Oldest pages are on the left and newest pages are on the right. Use the arrow keys to choose a page, then press Enter to open it.</span>
 	</div>
 	{{ if $pag.HasPrev }}
 		<a class="newer-posts" href="{{ $pag.Prev.URL }}" rel="prev">newer &gt;</a>
 	{{ end }}
 </nav>
+<script>
+	(function () {
+		"use strict";
+
+		document.querySelectorAll(".pagination").forEach(function (pagination) {
+			if (pagination.dataset.sliderReady === "true") return;
+
+			var slider = pagination.querySelector(".pagination-slider");
+			var input = pagination.querySelector(".page-slider-input");
+			var output = pagination.querySelector(".page-slider-output");
+			var ticks = Array.prototype.slice.call(pagination.querySelectorAll(".page-slider-tick"));
+			if (!slider || !input || !output || !ticks.length) return;
+
+			pagination.dataset.sliderReady = "true";
+			var total = ticks.length;
+			var currentIndex = parseInt(input.value, 10) - 1;
+			var selectedIndex = currentIndex;
+			var pointerActive = false;
+
+			function clampIndex(index) {
+				return Math.max(0, Math.min(total - 1, index));
+			}
+
+			function pageAt(index) {
+				return ticks[clampIndex(index)].dataset.page;
+			}
+
+			function positionOutput(index) {
+				var target = ticks[clampIndex(index)];
+				output.textContent = "Page " + pageAt(index) + " of " + total;
+				var sliderRect = slider.getBoundingClientRect();
+				var tickRect = target.getBoundingClientRect();
+				var x = tickRect.left + (tickRect.width / 2) - sliderRect.left;
+				var half = output.offsetWidth / 2;
+				x = Math.max(half, Math.min(sliderRect.width - half, x));
+				output.style.left = x + "px";
+				input.setAttribute("aria-valuetext", output.textContent);
+			}
+
+			function magnify(targetIndex) {
+				targetIndex = clampIndex(targetIndex);
+				slider.classList.add("is-interacting");
+
+				ticks.forEach(function (tick, index) {
+					var distance = Math.abs(index - targetIndex);
+					var influence = Math.max(0, 1 - (distance / 5));
+					var growth = 1 + (2.6 * influence * influence);
+
+					tick.style.flexGrow = growth.toFixed(3);
+					if (influence > 0) {
+						tick.style.setProperty("--page-tick-height", (9 + (21 * influence)).toFixed(1) + "px");
+					} else {
+						tick.style.removeProperty("--page-tick-height");
+					}
+					tick.classList.toggle("page-slider-tick-target", index === targetIndex);
+				});
+
+				positionOutput(targetIndex);
+			}
+
+			function settle(resetSelection) {
+				if (resetSelection) {
+					selectedIndex = currentIndex;
+					input.value = String(currentIndex + 1);
+				}
+
+				ticks.forEach(function (tick) {
+					tick.style.flexGrow = "1";
+					tick.style.removeProperty("--page-tick-height");
+					tick.classList.remove("page-slider-tick-target");
+				});
+				slider.classList.remove("is-interacting");
+				positionOutput(selectedIndex);
+			}
+
+			function indexFromPointer(event) {
+				var rect = input.getBoundingClientRect();
+				var fraction = (event.clientX - rect.left) / rect.width;
+				return clampIndex(Math.round(fraction * (total - 1)));
+			}
+
+			function chooseIndex(index) {
+				selectedIndex = clampIndex(index);
+				input.value = String(selectedIndex + 1);
+				magnify(selectedIndex);
+			}
+
+			function openSelectedPage() {
+				if (selectedIndex === currentIndex) {
+					settle(false);
+					return;
+				}
+				window.location.assign(ticks[selectedIndex].href);
+			}
+
+			input.addEventListener("pointerdown", function (event) {
+				pointerActive = true;
+				input.setPointerCapture(event.pointerId);
+				chooseIndex(indexFromPointer(event));
+			});
+
+			input.addEventListener("pointermove", function (event) {
+				var index = indexFromPointer(event);
+				if (pointerActive) {
+					chooseIndex(index);
+				} else if (event.pointerType === "mouse") {
+					magnify(index);
+				}
+			});
+
+			input.addEventListener("pointerup", function (event) {
+				if (!pointerActive) return;
+				pointerActive = false;
+				chooseIndex(indexFromPointer(event));
+				openSelectedPage();
+			});
+
+			input.addEventListener("pointercancel", function () {
+				pointerActive = false;
+				settle(true);
+			});
+
+			input.addEventListener("pointerleave", function () {
+				if (!pointerActive) settle(true);
+			});
+
+			input.addEventListener("input", function () {
+				selectedIndex = clampIndex(parseInt(input.value, 10) - 1);
+				magnify(selectedIndex);
+			});
+
+			input.addEventListener("keydown", function (event) {
+				if (event.key === "Enter") {
+					event.preventDefault();
+					openSelectedPage();
+				} else if (event.key === "Escape") {
+					event.preventDefault();
+					settle(true);
+					input.blur();
+				}
+			});
+
+			input.addEventListener("focus", function () {
+				magnify(selectedIndex);
+			});
+
+			input.addEventListener("blur", function () {
+				if (!pointerActive) settle(true);
+			});
+
+			settle(false);
+		});
+	}());
+</script>
 {{ end }}
