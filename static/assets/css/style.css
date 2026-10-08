@@ -641,9 +641,11 @@ video {
 .pagination {
 	display: grid;
 	grid-template-areas: "older ticks newer";
-	grid-template-columns: minmax(5.5em, 1fr) minmax(180px, 3fr) minmax(5.5em, 1fr);
+	grid-template-columns: minmax(4.5em, auto) minmax(120px, 1fr) minmax(4.5em, auto);
 	align-items: end;
-	gap: 1em;
+	gap: 0.75em;
+	max-width: 600px;
+	margin: 0 auto;
 	font-size: 0.9em;
 	line-height: 1.7;
 }
@@ -661,15 +663,6 @@ video {
 .pagination-tick-panel {
 	grid-area: ticks;
 	min-width: 0;
-}
-
-.page-status {
-	display: block;
-	margin-bottom: 0.2em;
-	color: var(--text-muted);
-	font-size: 0.8em;
-	line-height: 1.2;
-	text-align: center;
 }
 
 .page-ticks {
