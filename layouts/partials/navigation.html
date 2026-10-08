@@ -205,7 +205,7 @@
     window.addEventListener("scroll", updateNavState, { passive: true });
     updateNavState();
 
-    if (pagedHomeLink && /\/page\/[2-9][0-9]*\/?$/.test(window.location.pathname)) {
+    if (pagedHomeLink && /\/page\/(?:[2-9]|[1-9][0-9]+)\/?$/.test(window.location.pathname)) {
       pagedHomeLink.hidden = false;
     }
 

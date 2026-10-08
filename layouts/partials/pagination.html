@@ -1,6 +1,11 @@
 {{ $pag := $.Paginator }}
 
 {{ if or $pag.HasPrev $pag.HasNext }}
+{{ $instance := default 0 ($.Scratch.Get "pagination-instance") }}
+{{ $instance = add $instance 1 }}
+{{ $.Scratch.Set "pagination-instance" $instance }}
+{{ $controlID := printf "page-slider-%d-%d" $pag.PageNumber $instance }}
+{{ $helpID := printf "%s-help" $controlID }}
 {{ $sliderValue := add (sub $pag.TotalPages $pag.PageNumber) 1 }}
 <!-- Keep these critical rules with the template because Micro.blog can retain an older static theme asset. -->
 <style>
@@ -73,8 +78,8 @@
 		height: 30px;
 	}
 
-	#footer .page-slider-tick,
-	#footer .page-slider-tick:hover {
+	.pagination .page-slider-tick,
+	.pagination .page-slider-tick:hover {
 		position: relative;
 		flex: 1 1 0;
 		min-width: 1px;
@@ -82,7 +87,7 @@
 		box-shadow: none;
 	}
 
-	#footer .page-slider-tick[hidden] {
+	.pagination .page-slider-tick[hidden] {
 		display: none !important;
 	}
 
@@ -152,7 +157,7 @@
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		#footer .page-slider-tick,
+		.pagination .page-slider-tick,
 		.page-slider-tick::after,
 		.page-slider-output {
 			transition: none;
@@ -164,14 +169,14 @@
 		<a class="older-posts" href="{{ $pag.Next.URL }}" rel="next">&lt; older</a>
 	{{ end }}
 	<div class="pagination-slider">
-		<output class="page-slider-output" for="page-slider-{{ $pag.PageNumber }}">Page {{ $pag.PageNumber }}</output>
+		<output class="page-slider-output" for="{{ $controlID }}">Page {{ $pag.PageNumber }}</output>
 		<span class="page-slider-ticks" aria-hidden="true">
 			{{ range collections.Reverse $pag.Pagers }}
 				<a class="page-slider-tick{{ if eq (mod .PageNumber 5) 0 }} page-slider-tick-major{{ end }}{{ if eq .PageNumber $pag.PageNumber }} page-slider-tick-current{{ end }}" href="{{ .URL }}" data-page="{{ .PageNumber }}" tabindex="-1" aria-hidden="true"></a>
 			{{ end }}
 		</span>
-		<input class="page-slider-input" id="page-slider-{{ $pag.PageNumber }}" type="range" min="1" max="{{ $pag.TotalPages }}" step="1" value="{{ $sliderValue }}" aria-label="Choose a blog page" aria-valuetext="Page {{ $pag.PageNumber }} of {{ $pag.TotalPages }}" aria-describedby="page-slider-help-{{ $pag.PageNumber }}">
-		<span class="page-slider-help" id="page-slider-help-{{ $pag.PageNumber }}">Oldest pages are on the left and newest pages are on the right. The ticks scale to represent the complete archive. Use the arrow keys to choose an exact page, then press Enter to open it.</span>
+		<input class="page-slider-input" id="{{ $controlID }}" type="range" min="1" max="{{ $pag.TotalPages }}" step="1" value="{{ $sliderValue }}" aria-label="Choose a blog page" aria-valuetext="Page {{ $pag.PageNumber }} of {{ $pag.TotalPages }}" aria-describedby="{{ $helpID }}">
+		<span class="page-slider-help" id="{{ $helpID }}">Oldest pages are on the left and newest pages are on the right. The ticks scale to represent the complete archive. Use the arrow keys to choose an exact page, then press Enter to open it.</span>
 	</div>
 	{{ if $pag.HasPrev }}
 		<a class="newer-posts" href="{{ $pag.Prev.URL }}" rel="prev">newer &gt;</a>

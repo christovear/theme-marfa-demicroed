@@ -803,8 +803,8 @@ video {
 	height: 30px;
 }
 
-#footer .page-slider-tick,
-#footer .page-slider-tick:hover {
+.pagination .page-slider-tick,
+.pagination .page-slider-tick:hover {
 	position: relative;
 	flex: 1 1 0;
 	min-width: 1px;
@@ -812,7 +812,7 @@ video {
 	box-shadow: none;
 }
 
-#footer .page-slider-tick[hidden] {
+.pagination .page-slider-tick[hidden] {
 	display: none !important;
 }
 
@@ -897,7 +897,7 @@ video {
 }
 
 @media (prefers-reduced-motion: reduce) {
-	#footer .page-slider-tick,
+	.pagination .page-slider-tick,
 	.page-slider-tick::after,
 	.page-slider-output {
 		transition: none;
