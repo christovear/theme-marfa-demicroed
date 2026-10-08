@@ -82,6 +82,10 @@
 		box-shadow: none;
 	}
 
+	#footer .page-slider-tick[hidden] {
+		display: none !important;
+	}
+
 	.page-slider-tick::after {
 		content: "";
 		position: absolute;
@@ -167,7 +171,7 @@
 			{{ end }}
 		</span>
 		<input class="page-slider-input" id="page-slider-{{ $pag.PageNumber }}" type="range" min="1" max="{{ $pag.TotalPages }}" step="1" value="{{ $sliderValue }}" aria-label="Choose a blog page" aria-valuetext="Page {{ $pag.PageNumber }} of {{ $pag.TotalPages }}" aria-describedby="page-slider-help-{{ $pag.PageNumber }}">
-		<span class="page-slider-help" id="page-slider-help-{{ $pag.PageNumber }}">Oldest pages are on the left and newest pages are on the right. Use the arrow keys to choose a page, then press Enter to open it.</span>
+		<span class="page-slider-help" id="page-slider-help-{{ $pag.PageNumber }}">Oldest pages are on the left and newest pages are on the right. The ticks scale to represent the complete archive. Use the arrow keys to choose an exact page, then press Enter to open it.</span>
 	</div>
 	{{ if $pag.HasPrev }}
 		<a class="newer-posts" href="{{ $pag.Prev.URL }}" rel="prev">newer &gt;</a>
@@ -184,25 +188,57 @@
 			var input = pagination.querySelector(".page-slider-input");
 			var output = pagination.querySelector(".page-slider-output");
 			var tickTrack = pagination.querySelector(".page-slider-ticks");
-			var ticks = Array.prototype.slice.call(pagination.querySelectorAll(".page-slider-tick"));
-			if (!slider || !input || !output || !tickTrack || !ticks.length) return;
+			var pages = Array.prototype.slice.call(pagination.querySelectorAll(".page-slider-tick"));
+			if (!slider || !input || !output || !tickTrack || !pages.length) return;
 
 			pagination.dataset.sliderReady = "true";
-			var total = ticks.length;
+			var total = pages.length;
 			var currentIndex = parseInt(input.value, 10) - 1;
 			var selectedIndex = currentIndex;
 			var pointerActive = false;
+			var visibleTicks = [];
+			var resizeFrame = null;
 
 			function clampIndex(index) {
 				return Math.max(0, Math.min(total - 1, index));
 			}
 
 			function pageAt(index) {
-				return ticks[clampIndex(index)].dataset.page;
+				return pages[clampIndex(index)].dataset.page;
+			}
+
+			function slotIndexForPage(pageIndex) {
+				if (visibleTicks.length < 2 || total < 2) return 0;
+				return Math.round((clampIndex(pageIndex) / (total - 1)) * (visibleTicks.length - 1));
+			}
+
+			function layoutTicks() {
+				var slotLimit = window.matchMedia("(max-width: 600px)").matches ? 25 : 50;
+				var slotCount = Math.min(total, slotLimit);
+
+				pages.forEach(function (tick) {
+					tick.hidden = true;
+					tick.style.removeProperty("--page-tick-height");
+					tick.classList.remove("page-slider-tick-major", "page-slider-tick-current", "page-slider-tick-target");
+				});
+
+				visibleTicks = [];
+				for (var slotIndex = 0; slotIndex < slotCount; slotIndex += 1) {
+					var pageIndex = slotCount === 1
+						? 0
+						: Math.round((slotIndex / (slotCount - 1)) * (total - 1));
+					var tick = pages[pageIndex];
+					tick.hidden = false;
+					tick.dataset.pageIndex = String(pageIndex);
+					tick.classList.toggle("page-slider-tick-major", slotIndex === 0 || slotIndex === slotCount - 1 || slotIndex % 5 === 0);
+					visibleTicks.push(tick);
+				}
+
+				visibleTicks[slotIndexForPage(currentIndex)].classList.add("page-slider-tick-current");
 			}
 
 			function positionOutput(index, pointerX) {
-				var target = ticks[clampIndex(index)];
+				var target = visibleTicks[slotIndexForPage(index)];
 				output.textContent = "Page " + pageAt(index);
 				var sliderRect = slider.getBoundingClientRect();
 				var tickRect = target.getBoundingClientRect();
@@ -218,17 +254,21 @@
 			function magnify(targetIndex, pointerX) {
 				targetIndex = clampIndex(targetIndex);
 				slider.classList.add("is-interacting");
+				var targetSlotIndex = slotIndexForPage(targetIndex);
 
-				ticks.forEach(function (tick, index) {
-					var distance = Math.abs(index - targetIndex);
+				visibleTicks.forEach(function (tick, index) {
+					var distance = Math.abs(index - targetSlotIndex);
 					var influence = Math.max(0, 1 - (distance / 5));
+					var baseHeight = tick.classList.contains("page-slider-tick-current")
+						? 27
+						: tick.classList.contains("page-slider-tick-major") ? 14 : 9;
 
 					if (influence > 0) {
-						tick.style.setProperty("--page-tick-height", (9 + (21 * influence)).toFixed(1) + "px");
+						tick.style.setProperty("--page-tick-height", (baseHeight + ((30 - baseHeight) * influence)).toFixed(1) + "px");
 					} else {
 						tick.style.removeProperty("--page-tick-height");
 					}
-					tick.classList.toggle("page-slider-tick-target", index === targetIndex);
+					tick.classList.toggle("page-slider-tick-target", index === targetSlotIndex);
 				});
 
 				positionOutput(targetIndex, pointerX);
@@ -240,7 +280,7 @@
 					input.value = String(currentIndex + 1);
 				}
 
-				ticks.forEach(function (tick) {
+				visibleTicks.forEach(function (tick) {
 					tick.style.removeProperty("--page-tick-height");
 					tick.classList.remove("page-slider-tick-target");
 				});
@@ -250,8 +290,8 @@
 
 			function indexFromPointer(event) {
 				var rect = tickTrack.getBoundingClientRect();
-				var fraction = (event.clientX - rect.left) / rect.width;
-				return clampIndex(Math.round((fraction * total) - 0.5));
+				var fraction = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+				return clampIndex(Math.round(fraction * (total - 1)));
 			}
 
 			function chooseIndex(index, pointerX) {
@@ -265,7 +305,7 @@
 					settle(false);
 					return;
 				}
-				window.location.assign(ticks[selectedIndex].href);
+				window.location.assign(pages[selectedIndex].href);
 			}
 
 			input.addEventListener("pointerdown", function (event) {
@@ -323,6 +363,16 @@
 				if (!pointerActive) settle(true);
 			});
 
+			window.addEventListener("resize", function () {
+				if (resizeFrame !== null) window.cancelAnimationFrame(resizeFrame);
+				resizeFrame = window.requestAnimationFrame(function () {
+					resizeFrame = null;
+					layoutTicks();
+					settle(false);
+				});
+			});
+
+			layoutTicks();
 			settle(false);
 		});
 	}());

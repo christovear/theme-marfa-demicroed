@@ -708,6 +708,10 @@ video {
 	box-shadow: none;
 }
 
+#footer .page-slider-tick[hidden] {
+	display: none !important;
+}
+
 .page-slider-tick::after {
 	content: "";
 	position: absolute;
