@@ -15,6 +15,12 @@
     z-index: 1000 !important;
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
+    box-shadow: none;
+    transition: box-shadow .2s ease;
+  }
+
+  body nav.main-nav.is-scrolled {
+    box-shadow: var(--nav-shadow, 0 1px 0 rgba(0, 0, 0, .06), 0 5px 12px rgba(0, 0, 0, .08));
   }
 
   .main-nav-spacer {

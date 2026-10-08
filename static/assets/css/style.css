@@ -6,6 +6,7 @@
 	--text-muted: #aaa;
 	--text-soft: #bbb;
 	--nav-bg: rgba(255, 255, 255, .90);
+	--nav-shadow: 0 1px 0 rgba(0, 0, 0, .06), 0 5px 12px rgba(0, 0, 0, .08);
 	--surface: #fcfcfc;
 	--border: #eee;
 	--separator: #d6d6d6;
@@ -30,6 +31,7 @@
 	--text-muted: #919aab;
 	--text-soft: #8c95a7;
 	--nav-bg: #282c34;
+	--nav-shadow: 0 1px 0 rgba(255, 255, 255, .06), 0 5px 12px rgba(0, 0, 0, .25);
 	--surface: #282c34;
 	--border: #545e6f;
 	--separator: #545e6f;
@@ -171,7 +173,7 @@ body nav.main-nav {
 }
 
 body nav.main-nav.is-scrolled {
-	box-shadow: 0 1px 0 var(--border);
+	box-shadow: var(--nav-shadow);
 }
 
 .nav-home-target,
