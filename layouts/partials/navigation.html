@@ -1,3 +1,120 @@
+<style id="persistent-navigation-styles">
+  body nav.main-nav {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    position: fixed !important;
+    top: 0;
+    right: 0;
+    left: 0;
+    width: 100% !important;
+    min-height: 44px;
+    padding: 20px 20px 0 !important;
+    margin: 0 !important;
+    background: var(--nav-bg, rgba(255, 255, 255, .90));
+    z-index: 1000 !important;
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+  }
+
+  .main-nav-spacer {
+    display: block;
+    height: 44px;
+  }
+
+  .main-nav > .nav-links {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end;
+    margin-left: auto;
+  }
+
+  .main-nav .nav-home-target,
+  .main-nav .nav-home-button {
+    display: block !important;
+    flex: 0 0 24px !important;
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 50% !important;
+    clip-path: circle(50%);
+    box-shadow: none !important;
+    overflow: hidden;
+  }
+
+  .main-nav .nav-home-target {
+    pointer-events: none;
+    overflow: visible;
+  }
+
+  .main-nav .nav-home-avatar {
+    display: block !important;
+    width: 24px !important;
+    max-width: 24px !important;
+    height: 24px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    clip-path: circle(50%);
+    object-fit: cover;
+  }
+
+  .main-nav .theme-toggle {
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex: 0 0 24px !important;
+    width: 24px !important;
+    height: 24px !important;
+    margin: 0 0 0 12px !important;
+    padding: 2px !important;
+    color: var(--text-strong, #000) !important;
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 50% !important;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .main-nav .theme-toggle svg {
+    display: block !important;
+    flex: 0 0 20px !important;
+    width: 20px !important;
+    height: 20px !important;
+    overflow: visible;
+  }
+
+  .profile-avatar-slot {
+    display: block;
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1em;
+    position: relative;
+  }
+
+  .profile-home-link,
+  .profile #avatar {
+    display: block !important;
+    width: 100%;
+    height: 100%;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+  }
+
+  .avatar-motion-ready .profile-home-link {
+    position: fixed !important;
+    z-index: 1100;
+    will-change: top, left, width, height;
+  }
+</style>
+
 <nav class="main-nav">
   {{ if .IsHome }}
   <span class="nav-home-target" aria-hidden="true"></span>
@@ -32,6 +149,7 @@
   </span>
 
 </nav>
+<div class="main-nav-spacer" aria-hidden="true"></div>
 
 <script>
   (function () {
@@ -40,6 +158,14 @@
     var root = document.documentElement;
     var themeColor = document.getElementById("theme-color");
     var storageKey = "site-theme";
+    var nav = document.querySelector(".main-nav");
+
+    function updateNavState() {
+      if (nav) nav.classList.toggle("is-scrolled", window.scrollY > 0);
+    }
+
+    window.addEventListener("scroll", updateNavState, { passive: true });
+    updateNavState();
 
     if (pagedHomeLink && /\/page\/[2-9][0-9]*\/?$/.test(window.location.pathname)) {
       pagedHomeLink.hidden = false;
@@ -71,7 +197,6 @@
     updateToggle();
 
     function initCollapsingAvatar() {
-      var nav = document.querySelector(".main-nav");
       var avatarLink = document.querySelector(".profile-home-link");
       var avatarSlot = document.querySelector(".profile-avatar-slot");
       var avatarTarget = document.querySelector(".nav-home-target");
