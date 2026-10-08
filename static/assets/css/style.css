@@ -389,6 +389,11 @@ li	{ list-style-type:circle; list-style-position:inside;}
 
 /* Post */
 
+.post-body {
+	overflow-wrap: anywhere;
+	word-break: break-word;
+}
+
 .post-body li:last-child {
 	margin-bottom: 1.5em;
 }
