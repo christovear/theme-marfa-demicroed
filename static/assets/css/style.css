@@ -706,7 +706,6 @@ video {
 	min-width: 1px;
 	height: 30px;
 	box-shadow: none;
-	transition: flex-grow 90ms ease-out;
 }
 
 .page-slider-tick::after {

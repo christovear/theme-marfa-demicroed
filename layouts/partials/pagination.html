@@ -80,7 +80,6 @@
 		min-width: 1px;
 		height: 30px;
 		box-shadow: none;
-		transition: flex-grow 90ms ease-out;
 	}
 
 	.page-slider-tick::after {
@@ -223,9 +222,7 @@
 				ticks.forEach(function (tick, index) {
 					var distance = Math.abs(index - targetIndex);
 					var influence = Math.max(0, 1 - (distance / 5));
-					var growth = 1 + (2.6 * influence * influence);
 
-					tick.style.flexGrow = growth.toFixed(3);
 					if (influence > 0) {
 						tick.style.setProperty("--page-tick-height", (9 + (21 * influence)).toFixed(1) + "px");
 					} else {
@@ -251,7 +248,6 @@
 				}
 
 				ticks.forEach(function (tick) {
-					tick.style.flexGrow = "1";
 					tick.style.removeProperty("--page-tick-height");
 					tick.classList.remove("page-slider-tick-target");
 				});
