@@ -268,7 +268,9 @@
         var left = startLeft + (targetLeft - startLeft) * progress;
         var top = naturalTop + (targetTop - naturalTop) * progress;
         var size = startSize + (targetSize - startSize) * progress;
-        var labelProgress = Math.max(0, Math.min((progress - .35) / .65, 1));
+        var labelProgress = reducedMotion
+          ? (scrollTop > 0 ? 1 : 0)
+          : Math.max(0, Math.min((scrollTop - collapseDistance) / 60, 1));
 
         avatarLink.style.left = left + "px";
         avatarLink.style.top = top + "px";
