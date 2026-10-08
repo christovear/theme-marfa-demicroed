@@ -9,13 +9,13 @@
 			{{ $posts = $posts | append . }}
 		{{ end }}
 	{{ end }}
-	{{ $paginator := .Paginate $posts.ByDate.Reverse }}
+	{{ $paginator := .Paginate $posts.ByDate.Reverse 20 }}
 	{{ $list := $paginator.Pages }}
 	{{ range $list  }}
 		{{ partial "post-item.html" . }}
 	{{ end }}
 {{ else if .Site.Params.paginate_categories }}
-	{{ $paginator := .Paginate (where .Pages.ByDate.Reverse "Type" "post") }}
+	{{ $paginator := .Paginate (where .Pages.ByDate.Reverse "Type" "post") 20 }}
 	{{ $list := $paginator.Pages }}
 	{{ range $list  }}
 		{{ partial "post-item.html" . }}

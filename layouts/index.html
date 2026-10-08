@@ -3,13 +3,13 @@
 <ul id="post-list" class="h-feed">
 
 {{ if .IsHome }}
-	{{ $paginator := .Paginate (where .Site.RegularPages.ByDate.Reverse "Type" "post") }}
+	{{ $paginator := .Paginate (where .Site.RegularPages.ByDate.Reverse "Type" "post") 20 }}
 	{{ $list := $paginator.Pages }}
 	{{ range $list  }}
 		{{ partial "post-item.html" . }}
 	{{ end }}
 {{ else if .Site.Params.paginate_categories }}
-	{{ $paginator := .Paginate (where .Site.Pages.ByDate.Reverse "Type" "post") }}
+	{{ $paginator := .Paginate (where .Site.Pages.ByDate.Reverse "Type" "post") 20 }}
 	{{ $list := $paginator.Pages }}
 	{{ range $list  }}
 		{{ partial "post-item.html" . }}

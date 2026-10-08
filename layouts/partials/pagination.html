@@ -5,6 +5,14 @@
 	{{ if $pag.HasNext }}
 		<a class="older-posts" href="{{ $pag.Next.URL }}" rel="next">&lt; older</a>
 	{{ end }}
+	<div class="pagination-tick-panel">
+		<span class="page-status">Page {{ $pag.PageNumber }} of {{ $pag.TotalPages }}</span>
+		<span class="page-ticks">
+			{{ range collections.Reverse $pag.Pagers }}
+				<a class="page-tick{{ if eq (mod .PageNumber 5) 0 }} page-tick-major{{ end }}{{ if eq .PageNumber $pag.PageNumber }} page-tick-current{{ end }}" href="{{ .URL }}" aria-label="Page {{ .PageNumber }}" title="Page {{ .PageNumber }}"{{ if eq .PageNumber $pag.PageNumber }} aria-current="page"{{ end }}></a>
+			{{ end }}
+		</span>
+	</div>
 	{{ if $pag.HasPrev }}
 		<a class="newer-posts" href="{{ $pag.Prev.URL }}" rel="prev">newer &gt;</a>
 	{{ end }}
