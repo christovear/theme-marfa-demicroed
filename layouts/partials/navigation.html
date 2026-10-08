@@ -8,7 +8,9 @@
   </button>
 
   <span class="nav-links">
-    {{ if ne .IsHome true }}
+    {{ if .IsHome }}
+    <a class="normal paged-home-link" href="/" hidden> <span class="arrow">←</span> Home</a>
+    {{ else }}
     <a class="normal" href="/"> <span class="arrow">←</span> Home</a>
     {{ end }}
 
@@ -26,9 +28,14 @@
 <script>
   (function () {
     var toggle = document.querySelector(".theme-toggle");
+    var pagedHomeLink = document.querySelector(".paged-home-link");
     var root = document.documentElement;
     var themeColor = document.getElementById("theme-color");
     var storageKey = "site-theme";
+
+    if (pagedHomeLink && /\/page\/[2-9][0-9]*\/?$/.test(window.location.pathname)) {
+      pagedHomeLink.hidden = false;
+    }
 
     if (!toggle) return;
 
