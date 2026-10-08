@@ -1,11 +1,11 @@
 <nav class="main-nav">
-  <button class="theme-toggle" type="button" aria-label="Switch to dark mode" aria-pressed="false" title="Switch to dark mode">
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
-      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.5"></circle>
-      <path d="M12 3a9 9 0 0 1 0 18v-4.75a4.25 4.25 0 0 0 0-8.5V3z" fill="currentColor"></path>
-      <path d="M12 7.75a4.25 4.25 0 0 0 0 8.5v-8.5z" fill="currentColor"></path>
-    </svg>
-  </button>
+  {{ if .IsHome }}
+  <span class="nav-home-target" aria-hidden="true"></span>
+  {{ else }}
+  <a class="nav-home-button" href="/" aria-label="Home" title="Home">
+    <img class="nav-home-avatar" src="{{ .Site.Author.avatar }}" width="24" height="24" alt="">
+  </a>
+  {{ end }}
 
   <span class="nav-links">
     {{ if .IsHome }}
@@ -21,6 +21,14 @@
         <a href="{{ .URL | relLangURL | safeURL }}">{{ .Name }}</a>
       {{ end }}
     {{ end }}
+
+    <button class="theme-toggle" type="button" aria-label="Switch to dark mode" aria-pressed="false" title="Switch to dark mode">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
+        <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.5"></circle>
+        <path d="M12 3a9 9 0 0 1 0 18v-4.75a4.25 4.25 0 0 0 0-8.5V3z" fill="currentColor"></path>
+        <path d="M12 7.75a4.25 4.25 0 0 0 0 8.5v-8.5z" fill="currentColor"></path>
+      </svg>
+    </button>
   </span>
 
 </nav>
@@ -61,5 +69,75 @@
     });
 
     updateToggle();
+
+    function initCollapsingAvatar() {
+      var nav = document.querySelector(".main-nav");
+      var avatarLink = document.querySelector(".profile-home-link");
+      var avatarSlot = document.querySelector(".profile-avatar-slot");
+      var avatarTarget = document.querySelector(".nav-home-target");
+
+      if (!nav || !avatarLink || !avatarSlot || !avatarTarget) return;
+
+      var root = document.documentElement;
+      var reducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      var frame = null;
+      var startLeft = 0;
+      var startTop = 0;
+      var startSize = 80;
+      var targetLeft = 20;
+      var targetTop = 20;
+      var targetSize = 24;
+      var collapseDistance = 160;
+
+      function measure() {
+        var slotRect = avatarSlot.getBoundingClientRect();
+        var targetRect = avatarTarget.getBoundingClientRect();
+
+        startLeft = slotRect.left;
+        startTop = slotRect.top + window.scrollY;
+        startSize = slotRect.width;
+        targetLeft = targetRect.left;
+        targetTop = targetRect.top;
+        targetSize = targetRect.width || 24;
+        collapseDistance = Math.max(120, Math.min(220, startTop - targetTop + 40));
+
+        root.classList.add("avatar-motion-ready");
+        updatePosition();
+      }
+
+      function updatePosition() {
+        frame = null;
+
+        var scrollTop = Math.max(window.scrollY, 0);
+        var progress = reducedMotion ? (scrollTop > 0 ? 1 : 0) : Math.min(scrollTop / collapseDistance, 1);
+        var naturalTop = startTop - scrollTop;
+        var left = startLeft + (targetLeft - startLeft) * progress;
+        var top = naturalTop + (targetTop - naturalTop) * progress;
+        var size = startSize + (targetSize - startSize) * progress;
+
+        avatarLink.style.left = left + "px";
+        avatarLink.style.top = top + "px";
+        avatarLink.style.width = size + "px";
+        avatarLink.style.height = size + "px";
+        nav.classList.toggle("is-scrolled", scrollTop > 0);
+      }
+
+      function requestUpdate() {
+        if (frame === null) frame = window.requestAnimationFrame(updatePosition);
+      }
+
+      window.addEventListener("scroll", requestUpdate, { passive: true });
+      window.addEventListener("resize", function () {
+        window.requestAnimationFrame(measure);
+      });
+
+      measure();
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initCollapsingAvatar);
+    } else {
+      initCollapsingAvatar();
+    }
   })();
 </script>
