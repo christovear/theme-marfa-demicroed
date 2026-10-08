@@ -90,7 +90,7 @@
 		width: 2px;
 		height: var(--page-tick-height, 9px);
 		background: var(--separator);
-		transform: translateX(calc(-50% + var(--page-ticks-offset, 0px)));
+		transform: translateX(-50%);
 		transition: height 90ms ease-out, background-color 90ms ease-out;
 	}
 
@@ -231,13 +231,6 @@
 					tick.classList.toggle("page-slider-tick-target", index === targetIndex);
 				});
 
-				tickTrack.style.removeProperty("--page-ticks-offset");
-				if (typeof pointerX === "number") {
-					var targetRect = ticks[targetIndex].getBoundingClientRect();
-					var targetCenter = targetRect.left + (targetRect.width / 2);
-					tickTrack.style.setProperty("--page-ticks-offset", (pointerX - targetCenter) + "px");
-				}
-
 				positionOutput(targetIndex, pointerX);
 			}
 
@@ -251,7 +244,6 @@
 					tick.style.removeProperty("--page-tick-height");
 					tick.classList.remove("page-slider-tick-target");
 				});
-				tickTrack.style.removeProperty("--page-ticks-offset");
 				slider.classList.remove("is-interacting");
 				positionOutput(selectedIndex);
 			}
