@@ -8,8 +8,8 @@
     right: 0;
     left: 0;
     width: 100% !important;
-    min-height: 46px;
-    padding: 20px 20px 2px !important;
+    min-height: 42px;
+    padding: 10px 20px 8px !important;
     margin: 0 !important;
     background: var(--nav-bg, rgba(255, 255, 255, .90));
     z-index: 1000 !important;
@@ -23,9 +23,13 @@
     box-shadow: var(--nav-shadow, 0 1px 0 rgba(0, 0, 0, .06), 0 5px 12px rgba(0, 0, 0, .08));
   }
 
+  :root[data-theme="dark"] body nav.main-nav.is-scrolled {
+    box-shadow: 0 1px 0 rgba(255, 255, 255, .09), 0 3px 7px rgba(0, 0, 0, .38), 0 9px 20px rgba(0, 0, 0, .48);
+  }
+
   .main-nav-spacer {
     display: block;
-    height: 46px;
+    height: 42px;
   }
 
   .main-nav > .nav-links {
