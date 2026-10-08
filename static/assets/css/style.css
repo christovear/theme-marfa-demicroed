@@ -622,44 +622,57 @@ video {
 	max-width: 100%;
 }
 
-/* The main wrapper for pagination links */
+/* The copyright comes from Micro.blog's custom footer partial. */
+.site-footer-row {
+	position: relative;
+	max-width: 900px;
+	margin: 2em auto 0;
+	padding: 0 25px 35px;
+}
+
+.site-footer-row > footer[style] {
+	margin-top: 0 !important;
+}
+
+.site-footer-row #footer:has(.pagination) {
+	position: absolute;
+	left: 25px;
+	right: 25px;
+	top: 0;
+}
+
 .pagination {
-    position: relative;
-    margin-top: 3rem;
-    margin-bottom: 0rem;
-    margin-left: auto;
-    margin-right: auto;
-	font-size: 13px;
-	color: var(--text-soft);
-    text-align: center;
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+	font-size: 0.9em;
+	line-height: 1.7;
 }
 
-.pagination a {
+.pagination .older-posts {
+	margin-left: auto;
 }
 
-/* Push the previous/next links out to the left/right */
-.older-posts,
-.newer-posts {
-    position: absolute;
-    display: inline-block;
+.pagination a,
+.pagination a:hover {
+	color: var(--link-text);
 }
 
-.older-posts {
-    right: 0;
+#footer .pagination a {
+	font-size: inherit;
+	line-height: inherit;
 }
 
-.page-number {
-    display: inline-block;
-    padding: 2px 0;
-    min-width: 100px;
+.pagination a:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 3px;
 }
 
-.newer-posts {
-    left: 0;
-}
-
-.older-posts:hover,
-.newer-posts:hover {
+@media screen and (max-width: 600px) {
+	.site-footer-row #footer:has(.pagination) {
+		position: static;
+		margin-bottom: 1em;
+	}
 }
 
 .extra-pagination {
@@ -713,7 +726,7 @@ article #post-list li {
 	text-decoration: none;
 }
 
-:root[data-theme="dark"] body > footer[style] {
+:root[data-theme="dark"] .site-footer-row > footer[style] {
 	color: var(--text-muted) !important;
 }
 

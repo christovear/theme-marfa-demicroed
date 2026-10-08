@@ -1,1 +1,5 @@
-<footer id="footer"></footer>
+<footer id="footer">
+	{{ if .IsHome }}
+		{{ partial "pagination" . }}
+	{{ end }}
+</footer>

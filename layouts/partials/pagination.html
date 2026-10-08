@@ -1,13 +1,12 @@
 {{ $pag := $.Paginator }}
 
-<nav class="pagination" role="navigation">
-    {{ if or $pag.HasPrev $pag.HasNext }}
-		{{ if $pag.HasPrev }}
-			<a class="newer-posts" href="{{ $pag.Prev.URL }}">&larr; Newer Posts</a>
-		{{ end }}
-		<span class="page-number">Page {{ $pag.PageNumber }} of {{ $pag.TotalPages }}</span>
-		{{ if $pag.HasNext }}
-			<a class="older-posts" href="{{ $pag.Next.URL }}">Older Posts &rarr;</a>
-		{{ end }}
+{{ if or $pag.HasPrev $pag.HasNext }}
+<nav class="pagination" aria-label="Blog pages">
+	{{ if $pag.HasPrev }}
+		<a class="newer-posts" href="{{ $pag.Prev.URL }}" rel="prev">&lt; next</a>
+	{{ end }}
+	{{ if $pag.HasNext }}
+		<a class="older-posts" href="{{ $pag.Next.URL }}" rel="next">previous &gt;</a>
 	{{ end }}
 </nav>
+{{ end }}

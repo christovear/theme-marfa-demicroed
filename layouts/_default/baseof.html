@@ -6,8 +6,10 @@
   <section id="wrapper" {{ if eq .File.Dir "about/" }} class="bio" {{ end }}>
 	{{ block "main" . }}{{ end }}
   </section>
-  {{ partial "footer.html" . }}
-  {{ partial "custom_footer.html" . }}
+  <div class="site-footer-row">
+    {{ partial "footer.html" . }}
+    {{ partial "custom_footer.html" . }}
+  </div>
 		{{ range .Site.Params.plugins_js }}
 			<script src="{{ . }}"></script>
 		{{ end }}
