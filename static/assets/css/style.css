@@ -215,6 +215,30 @@ nav.main-nav a.nav-home-button:hover {
 	margin-left: auto;
 }
 
+.main-nav .nav-brand {
+	display: inline-flex;
+	align-items: center;
+	flex: 0 0 auto;
+	min-width: 72px;
+}
+
+.main-nav .nav-brand-label {
+	display: inline-block;
+	margin-left: 8px;
+	color: var(--text-strong);
+	font-size: 13px;
+	line-height: 1;
+	font-weight: 700;
+	letter-spacing: .08em;
+	white-space: nowrap;
+}
+
+.main-nav .nav-brand-label.is-home-label {
+	opacity: 0;
+	transform: translateX(-6px);
+	will-change: opacity, transform;
+}
+
 nav.main-nav a {
 	color: var(--text-strong);
 	font-size: 13px;

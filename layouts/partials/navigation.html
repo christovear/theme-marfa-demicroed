@@ -29,6 +29,30 @@
     margin-left: auto;
   }
 
+  .main-nav .nav-brand {
+    display: inline-flex !important;
+    align-items: center !important;
+    flex: 0 0 auto;
+    min-width: 72px;
+  }
+
+  .main-nav .nav-brand-label {
+    display: inline-block;
+    margin-left: 8px;
+    color: var(--text-strong, #000);
+    font-size: 13px;
+    line-height: 1;
+    font-weight: 700;
+    letter-spacing: .08em;
+    white-space: nowrap;
+  }
+
+  .main-nav .nav-brand-label.is-home-label {
+    opacity: 0;
+    transform: translateX(-6px);
+    will-change: opacity, transform;
+  }
+
   .main-nav .nav-home-target,
   .main-nav .nav-home-button {
     display: block !important;
@@ -116,13 +140,17 @@
 </style>
 
 <nav class="main-nav">
+  <span class="nav-brand">
   {{ if .IsHome }}
-  <span class="nav-home-target" aria-hidden="true"></span>
+    <span class="nav-home-target" aria-hidden="true"></span>
+    <span class="nav-brand-label is-home-label" aria-hidden="true">DFTE</span>
   {{ else }}
-  <a class="nav-home-button" href="/" aria-label="Home" title="Home">
-    <img class="nav-home-avatar" src="{{ .Site.Author.avatar }}" width="24" height="24" alt="">
-  </a>
+    <a class="nav-home-button" href="/" aria-label="Home" title="Home">
+      <img class="nav-home-avatar" src="{{ .Site.Author.avatar }}" width="24" height="24" alt="">
+    </a>
+    <span class="nav-brand-label" aria-hidden="true">DFTE</span>
   {{ end }}
+  </span>
 
   <span class="nav-links">
     {{ if .IsHome }}
@@ -200,6 +228,7 @@
       var avatarLink = document.querySelector(".profile-home-link");
       var avatarSlot = document.querySelector(".profile-avatar-slot");
       var avatarTarget = document.querySelector(".nav-home-target");
+      var brandLabel = document.querySelector(".nav-brand-label.is-home-label");
 
       if (!nav || !avatarLink || !avatarSlot || !avatarTarget) return;
 
@@ -239,11 +268,16 @@
         var left = startLeft + (targetLeft - startLeft) * progress;
         var top = naturalTop + (targetTop - naturalTop) * progress;
         var size = startSize + (targetSize - startSize) * progress;
+        var labelProgress = Math.max(0, Math.min((progress - .35) / .65, 1));
 
         avatarLink.style.left = left + "px";
         avatarLink.style.top = top + "px";
         avatarLink.style.width = size + "px";
         avatarLink.style.height = size + "px";
+        if (brandLabel) {
+          brandLabel.style.opacity = labelProgress;
+          brandLabel.style.transform = "translateX(" + (-6 * (1 - labelProgress)) + "px)";
+        }
         nav.classList.toggle("is-scrolled", scrollTop > 0);
       }
 
