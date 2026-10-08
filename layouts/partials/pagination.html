@@ -91,7 +91,7 @@
 		width: 2px;
 		height: var(--page-tick-height, 9px);
 		background: var(--separator);
-		transform: translateX(calc(-50% + var(--page-tick-offset, 0px)));
+		transform: translateX(calc(-50% + var(--page-ticks-offset, 0px)));
 		transition: height 90ms ease-out, background-color 90ms ease-out;
 	}
 
@@ -184,8 +184,9 @@
 			var slider = pagination.querySelector(".pagination-slider");
 			var input = pagination.querySelector(".page-slider-input");
 			var output = pagination.querySelector(".page-slider-output");
+			var tickTrack = pagination.querySelector(".page-slider-ticks");
 			var ticks = Array.prototype.slice.call(pagination.querySelectorAll(".page-slider-tick"));
-			if (!slider || !input || !output || !ticks.length) return;
+			if (!slider || !input || !output || !tickTrack || !ticks.length) return;
 
 			pagination.dataset.sliderReady = "true";
 			var total = ticks.length;
@@ -231,13 +232,13 @@
 						tick.style.removeProperty("--page-tick-height");
 					}
 					tick.classList.toggle("page-slider-tick-target", index === targetIndex);
-					tick.style.removeProperty("--page-tick-offset");
 				});
 
+				tickTrack.style.removeProperty("--page-ticks-offset");
 				if (typeof pointerX === "number") {
 					var targetRect = ticks[targetIndex].getBoundingClientRect();
 					var targetCenter = targetRect.left + (targetRect.width / 2);
-					ticks[targetIndex].style.setProperty("--page-tick-offset", (pointerX - targetCenter) + "px");
+					tickTrack.style.setProperty("--page-ticks-offset", (pointerX - targetCenter) + "px");
 				}
 
 				positionOutput(targetIndex, pointerX);
@@ -252,15 +253,15 @@
 				ticks.forEach(function (tick) {
 					tick.style.flexGrow = "1";
 					tick.style.removeProperty("--page-tick-height");
-					tick.style.removeProperty("--page-tick-offset");
 					tick.classList.remove("page-slider-tick-target");
 				});
+				tickTrack.style.removeProperty("--page-ticks-offset");
 				slider.classList.remove("is-interacting");
 				positionOutput(selectedIndex);
 			}
 
 			function indexFromPointer(event) {
-				var rect = pagination.querySelector(".page-slider-ticks").getBoundingClientRect();
+				var rect = tickTrack.getBoundingClientRect();
 				var fraction = (event.clientX - rect.left) / rect.width;
 				return clampIndex(Math.round((fraction * total) - 0.5));
 			}

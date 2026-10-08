@@ -717,7 +717,7 @@ video {
 	width: 2px;
 	height: var(--page-tick-height, 9px);
 	background: var(--separator);
-	transform: translateX(calc(-50% + var(--page-tick-offset, 0px)));
+	transform: translateX(calc(-50% + var(--page-ticks-offset, 0px)));
 	transition: height 90ms ease-out, background-color 90ms ease-out;
 }
 
