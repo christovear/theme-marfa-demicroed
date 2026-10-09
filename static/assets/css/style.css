@@ -97,7 +97,8 @@ body {
 
 /* Profile */
 
-.profile #wrapper {
+.profile .profile-wrapper {
+	max-width: 600px;
 	margin: 0 auto;
 	text-align: center;
 	padding: 80px 0;
@@ -469,7 +470,7 @@ span.divider {
 	margin: 0 auto;
 }
 
-span.separator:last-child {
+#post-list > li:last-child .separator {
 	display: none;
 }
 
@@ -692,7 +693,7 @@ h2.headline {
 		padding: 35px 0 60px 0;
 	}
 
-	.profile #wrapper {
+	.profile .profile-wrapper {
 		margin: 0 auto;
 		text-align: center;
 		padding: 70px 0 40px 0;

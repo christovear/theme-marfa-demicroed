@@ -1,4 +1,5 @@
 <head>
+  {{- $author := partial "site-author.html" . -}}
   {{- $siteTitle := .Site.Title -}}
   {{- $previewTitle := default "" .Title -}}
   {{- $plainContent := "" -}}
@@ -49,7 +50,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta id="theme-color" name="theme-color" content="#fff">
-  <meta content="{{ .Site.Author.name }}" name="author">
+  <meta content="{{ $author.name }}" name="author">
 
   <title>{{ if and $previewTitle (ne $previewTitle $siteTitle) }}{{ $previewTitle }} - {{ end }}{{ $siteTitle }}</title>
 
@@ -62,14 +63,43 @@
         savedTheme = localStorage.getItem(storageKey);
       } catch (error) {}
 
+      var colorScheme = window.matchMedia
+        ? window.matchMedia("(prefers-color-scheme: dark)")
+        : null;
+
+      function applyTheme(theme) {
+        var themeColor = document.getElementById("theme-color");
+        document.documentElement.setAttribute("data-theme", theme);
+        if (themeColor) themeColor.setAttribute("content", theme === "dark" ? "#282c34" : "#fff");
+      }
+
       if (savedTheme !== "dark" && savedTheme !== "light") {
-        savedTheme = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+        savedTheme = colorScheme && colorScheme.matches
           ? "dark"
           : "light";
       }
 
-      document.documentElement.setAttribute("data-theme", savedTheme);
-      document.getElementById("theme-color").setAttribute("content", savedTheme === "dark" ? "#282c34" : "#fff");
+      applyTheme(savedTheme);
+
+      function followSystemTheme(event) {
+        var storedTheme = null;
+
+        try {
+          storedTheme = localStorage.getItem(storageKey);
+        } catch (error) {}
+
+        if (storedTheme === "dark" || storedTheme === "light") return;
+        applyTheme(event.matches ? "dark" : "light");
+        window.dispatchEvent(new CustomEvent("site-theme-change"));
+      }
+
+      if (colorScheme) {
+        if (colorScheme.addEventListener) {
+          colorScheme.addEventListener("change", followSystemTheme);
+        } else if (colorScheme.addListener) {
+          colorScheme.addListener(followSystemTheme);
+        }
+      }
     })();
   </script>
 
@@ -88,7 +118,7 @@
   <meta name="description" content="{{ . }}">
   <meta property="og:description" content="{{ . }}">
   {{ end }}
-  {{ with .Site.Author.avatar }}
+  {{ with $author.avatar }}
   <meta property="og:image" content="{{ . | absURL }}">
   <meta property="og:image:alt" content="{{ $siteTitle }}">
   {{ end }}
@@ -100,7 +130,7 @@
   {{ with $description }}
   <meta name="twitter:description" content="{{ . }}">
   {{ end }}
-  {{ with .Site.Author.avatar }}
+  {{ with $author.avatar }}
   <meta name="twitter:image" content="{{ . | absURL }}">
   {{ end }}
   {{ end }}

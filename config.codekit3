@@ -127,6 +127,14 @@
       "oAP" : "\/build\/layouts\/partials\/profile.html",
       "oF" : 0
     },
+    "\/layouts\/partials\/site-author.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/build\/layouts\/partials\/site-author.html",
+      "oF" : 0
+    },
     "\/layouts\/post\/single.html" : {
       "cB" : 0,
       "ft" : 8192,

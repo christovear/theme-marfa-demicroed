@@ -1,12 +1,13 @@
+{{- $author := partial "site-author.html" . -}}
 <div class="profile">
-  <section id="wrapper">
+  <section class="profile-wrapper">
     <header class="h-card">
       <span class="profile-avatar-slot">
         <a class="u-url profile-home-link" href="/" aria-label="Home" title="Home">
-          <img id="avatar" class="u-photo" src="{{ .Site.Author.avatar }}" width="96" height="96" alt="{{ .Site.Title }}">
+          {{ with $author.avatar }}<img id="avatar" class="u-photo" src="{{ . }}" width="96" height="96" alt="{{ $.Site.Title }}">{{ end }}
         </a>
       </span>
-      <h1 class="p-name" rel="me">{{ .Site.Author.name }}</h1>
+      <h1 class="p-name">{{ $author.name }}</h1>
     </header>
   </section>
 </div>

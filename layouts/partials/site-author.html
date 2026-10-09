@@ -1,0 +1,25 @@
+{{- $name := .Site.Title -}}
+{{- $avatar := "" -}}
+{{- $versionParts := split (printf "%s" hugo.Version) "." -}}
+{{- $majorVersion := 0 -}}
+{{- $minorVersion := 0 -}}
+{{- if ge (len $versionParts) 1 -}}
+  {{- $majorVersion = int (index $versionParts 0) -}}
+{{- end -}}
+{{- if ge (len $versionParts) 2 -}}
+  {{- $minorVersion = int (index $versionParts 1) -}}
+{{- end -}}
+
+{{- if or (gt $majorVersion 0) (ge $minorVersion 156) -}}
+  {{- with .Site.Params.author -}}
+    {{- with .name }}{{ $name = . }}{{ end -}}
+    {{- with .avatar }}{{ $avatar = . }}{{ end -}}
+  {{- end -}}
+{{- else -}}
+  {{- with .Site.Author -}}
+    {{- with .name }}{{ $name = . }}{{ end -}}
+    {{- with .avatar }}{{ $avatar = . }}{{ end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- return (dict "name" $name "avatar" $avatar) -}}

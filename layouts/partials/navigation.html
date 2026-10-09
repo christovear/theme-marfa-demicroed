@@ -1,3 +1,4 @@
+{{- $author := partial "site-author.html" . -}}
 <style id="persistent-navigation-styles">
   body nav.main-nav {
     display: flex !important;
@@ -156,7 +157,7 @@
     <span class="nav-brand-label is-home-label" aria-hidden="true">DFTE</span>
   {{ else }}
     <a class="nav-home-button" href="/" aria-label="Home" title="Home">
-      <img class="nav-home-avatar" src="{{ .Site.Author.avatar }}" width="24" height="24" alt="">
+      {{ with $author.avatar }}<img class="nav-home-avatar" src="{{ . }}" width="24" height="24" alt="">{{ end }}
     </a>
     <span class="nav-brand-label" aria-hidden="true">DFTE</span>
   {{ end }}
@@ -220,6 +221,8 @@
       toggle.setAttribute("title", label);
       themeColor.setAttribute("content", isDark ? "#282c34" : "#fff");
     }
+
+    window.addEventListener("site-theme-change", updateToggle);
 
     toggle.addEventListener("click", function () {
       var nextTheme = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
