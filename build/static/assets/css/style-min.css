@@ -854,6 +854,10 @@ video {
 	background: var(--accent);
 }
 
+:root[data-theme="dark"] .page-slider-tick-current::after {
+	background: var(--link-underline);
+}
+
 .page-slider-input {
 	position: absolute;
 	left: 0;

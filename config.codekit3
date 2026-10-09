@@ -63,6 +63,14 @@
       "oAP" : "\/build\/layouts\/index.html",
       "oF" : 0
     },
+    "\/layouts\/partials\/custom_footer.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/build\/layouts\/partials\/custom_footer.html",
+      "oF" : 0
+    },
     "\/layouts\/partials\/footer.html" : {
       "cB" : 0,
       "ft" : 8192,
