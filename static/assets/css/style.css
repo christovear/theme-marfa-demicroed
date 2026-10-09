@@ -104,6 +104,10 @@ body {
 	padding: 80px 0;
 }
 
+.profile .p-name {
+	text-align: center;
+}
+
 .profile-avatar-slot {
 	display: block;
 	width: 80px;
