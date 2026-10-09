@@ -25,37 +25,18 @@
 
   <article class="topics-page">
     <header class="topics-header">
-      <h1>topics</h1>
-      <p>Explore the subjects that recur here and the connections between them.</p>
+      <h1>Topics</h1>
     </header>
-
-    <form class="topics-search" role="search">
-      <label for="topics-search-field">Find a topic</label>
-      <div class="topics-search-row">
-        <input id="topics-search-field" type="search" name="topic" autocomplete="off" placeholder="Search {{ len $topics }} topics">
-        <button type="submit">Open topic</button>
-      </div>
-    </form>
 
     <section class="topics-constellation" aria-labelledby="topics-constellation-title">
       <h2 id="topics-constellation-title" class="visually-hidden">Topic constellation</h2>
-      <p class="topics-instructions">Larger topics appear more often. Connected topics have appeared together in the same post.</p>
       <div class="topics-graph-frame">
         <svg class="topics-graph" role="img" aria-labelledby="topics-graph-title topics-graph-description"></svg>
         <div class="topics-graph-empty" hidden>No categories are available yet.</div>
       </div>
       <p class="topics-status" aria-live="polite">Preparing the constellation…</p>
-      <noscript><p class="topics-noscript">The interactive constellation requires JavaScript. Every topic is still available in the index below.</p></noscript>
+      <noscript><p class="topics-noscript">The interactive constellation requires JavaScript.</p></noscript>
     </section>
-
-    <details class="topics-index">
-      <summary>All {{ len $topics }} topics</summary>
-      <ul>
-        {{- range sort $topics "label" -}}
-          <li><a href="{{ .url }}" data-topic-id="{{ .id }}">{{ .label }} <span>{{ .count }}</span></a></li>
-        {{- end -}}
-      </ul>
-    </details>
   </article>
 
   <script id="topics-data" type="application/json">{{ dict "topics" $topics "postTopicSets" $postTopicSets | jsonify | safeJS }}</script>

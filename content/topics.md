@@ -1,5 +1,5 @@
 ---
-title: topics
+title: Topics
 type: topics
 url: /topics/
 description: Explore the subjects and connections in Dispatches from the Empire.

@@ -25,17 +25,16 @@
 	var status = root.querySelector(".topics-status");
 	var graphFrame = root.querySelector(".topics-graph-frame");
 	var emptyState = root.querySelector(".topics-graph-empty");
-	var searchForm = root.querySelector(".topics-search");
-	var searchField = root.querySelector("#topics-search-field");
-	var indexLinks = Array.prototype.slice.call(root.querySelectorAll(".topics-index a[data-topic-id]"));
 	var topicById = {};
 	var pairWeights = {};
 	var connections = [];
 	var adjacency = {};
 	var nodeElements = {};
 	var edgeElements = [];
-	var currentTopicId = null;
-	var searchMatchId = null;
+	var renderedNodes = [];
+	var hoverTopicId = null;
+	var touchTopicId = null;
+	var lastPointerType = "";
 	var resizeTimer = null;
 
 	function normalize(value) {
@@ -108,7 +107,7 @@
 		var maxCount = topics.reduce(function (largest, topic) {
 			return Math.max(largest, topic.count);
 		}, 1);
-		var labelLimit = width < 500 ? 22 : (width < 760 ? 30 : 40);
+		var labelLimit = width < 500 ? 14 : (width < 760 ? 20 : 30);
 		var padding = width < 500 ? 34 : 52;
 		var centerX = width / 2;
 		var centerY = height / 2;
@@ -150,7 +149,7 @@
 					var dy = secondNode.y - firstNode.y;
 					var distanceSquared = Math.max(36, (dx * dx) + (dy * dy));
 					var distance = Math.sqrt(distanceSquared);
-					var repulsion = (width < 500 ? 95 : 145) / distanceSquared;
+					var repulsion = (width < 500 ? 1800 : 2400) / distanceSquared;
 					var pushX = (dx / distance) * repulsion * cooling;
 					var pushY = (dy / distance) * repulsion * cooling;
 					firstNode.vx -= pushX;
@@ -166,7 +165,7 @@
 				var dx = target.x - source.x;
 				var dy = target.y - source.y;
 				var distance = Math.max(1, Math.sqrt((dx * dx) + (dy * dy)));
-				var desired = Math.max(54, 125 - (Math.min(connection.weight, 8) * 7));
+				var desired = Math.max(118, 190 - (Math.min(connection.weight, 8) * 8));
 				var pull = (distance - desired) * .00075 * cooling;
 				var pullX = (dx / distance) * pull;
 				var pullY = (dy / distance) * pull;
@@ -210,7 +209,7 @@
 		return { nodes: nodes, byId: layoutById };
 	}
 
-	function setStatus(topic) {
+	function setStatus(topic, touchSelection) {
 		if (!topic) {
 			status.textContent = topics.length + " topics · choose one to open its archive";
 			return;
@@ -223,7 +222,8 @@
 			return topicById[relatedId].label;
 		});
 		var relationText = related.length ? " · often appears with " + related.join(", ") : " · no repeated connections yet";
-		status.innerHTML = "<strong>" + escapeHtml(topic.label) + "</strong> · " + topic.count + (topic.count === 1 ? " post" : " posts") + relationText;
+		var touchText = touchSelection ? " · tap again to open" : "";
+		status.innerHTML = "<strong>" + escapeHtml(topic.label) + "</strong> · " + topic.count + (topic.count === 1 ? " post" : " posts") + relationText + touchText;
 	}
 
 	function escapeHtml(value) {
@@ -232,10 +232,10 @@
 		return temporary.innerHTML;
 	}
 
-	function activateTopic(topicId, persistent) {
+	function activateTopic(topicId, touchSelection) {
 		var topic = topicById[topicId];
 		if (!topic) return;
-		if (persistent) currentTopicId = topicId;
+		hoverTopicId = topicId;
 		var relatedIds = {};
 		relatedIds[topicId] = true;
 		adjacency[topicId].forEach(function (connection) {
@@ -252,14 +252,11 @@
 		edgeElements.forEach(function (entry) {
 			entry.element.classList.toggle("is-active", entry.connection.source === topicId || entry.connection.target === topicId);
 		});
-		setStatus(topic);
+		setStatus(topic, touchSelection);
 	}
 
 	function clearActiveTopic() {
-		if (currentTopicId) {
-			activateTopic(currentTopicId, false);
-			return;
-		}
+		hoverTopicId = null;
 		svg.classList.remove("has-active");
 		Object.keys(nodeElements).forEach(function (id) {
 			nodeElements[id].classList.remove("is-active", "is-related", "is-dim");
@@ -294,6 +291,7 @@
 		emptyState.hidden = true;
 
 		var layout = createLayout(width, height);
+		renderedNodes = layout.nodes;
 		var edgeLayer = makeSvgElement("g", { "aria-hidden": "true" });
 		var nodeLayer = makeSvgElement("g", {});
 
@@ -341,40 +339,64 @@
 			nodeLayer.appendChild(link);
 			nodeElements[node.id] = link;
 
-			link.addEventListener("mouseenter", function () { activateTopic(node.id, false); });
-			link.addEventListener("mouseleave", clearActiveTopic);
-			link.addEventListener("focus", function () { activateTopic(node.id, false); });
-			link.addEventListener("blur", clearActiveTopic);
+			link.addEventListener("pointerdown", function (event) {
+				lastPointerType = event.pointerType || "";
+			});
+			link.addEventListener("click", function (event) {
+				var touchInput = lastPointerType === "touch" || (window.matchMedia && window.matchMedia("(hover: none)").matches);
+				if (!touchInput) return;
+				if (touchTopicId !== node.id) {
+					event.preventDefault();
+					touchTopicId = node.id;
+					activateTopic(node.id, true);
+				}
+			});
+			link.addEventListener("focus", function () {
+				if (touchTopicId !== node.id) activateTopic(node.id, false);
+			});
+			link.addEventListener("blur", function () {
+				if (!touchTopicId) clearActiveTopic();
+			});
 		});
 
 		svg.appendChild(edgeLayer);
 		svg.appendChild(nodeLayer);
-		if (searchMatchId && nodeElements[searchMatchId]) nodeElements[searchMatchId].classList.add("is-match");
-		if (currentTopicId) activateTopic(currentTopicId, false);
+		if (hoverTopicId) activateTopic(hoverTopicId);
 		else setStatus(null);
 	}
 
-	function findTopic(query) {
-		query = normalize(query);
-		if (!query) return null;
-		var exact = topics.find(function (topic) { return normalize(topic.label) === query; });
-		if (exact) return exact;
-		return topics.find(function (topic) { return normalize(topic.label).indexOf(query) === 0; }) ||
-			topics.find(function (topic) { return normalize(topic.label).indexOf(query) !== -1; });
+	function activateNearestTopic(event) {
+		if (event.pointerType === "touch" || !renderedNodes.length) return;
+		var bounds = svg.getBoundingClientRect();
+		var viewBox = svg.viewBox.baseVal;
+		var pointerX = (event.clientX - bounds.left) * (viewBox.width / bounds.width);
+		var pointerY = (event.clientY - bounds.top) * (viewBox.height / bounds.height);
+		var closest = null;
+		var closestDistance = Infinity;
+
+		renderedNodes.forEach(function (node) {
+			var dx = node.x - pointerX;
+			var dy = node.y - pointerY;
+			var distance = Math.sqrt((dx * dx) + (dy * dy));
+			if (distance < closestDistance) {
+				closest = node;
+				closestDistance = distance;
+			}
+		});
+
+		if (closest && closestDistance <= 54) {
+			if (hoverTopicId !== closest.id) activateTopic(closest.id);
+		} else if (hoverTopicId) {
+			clearActiveTopic();
+		}
 	}
 
-	function updateSearch() {
-		var match = findTopic(searchField.value);
-		searchMatchId = match ? match.id : null;
-		Object.keys(nodeElements).forEach(function (id) {
-			nodeElements[id].classList.toggle("is-match", id === searchMatchId);
-		});
-		indexLinks.forEach(function (link) {
-			link.classList.toggle("is-match", link.getAttribute("data-topic-id") === searchMatchId);
-		});
-		if (match) activateTopic(match.id, false);
-		else if (searchField.value.trim()) status.textContent = "No topic matches “" + searchField.value.trim() + "”.";
-		else clearActiveTopic();
+	function clearTouchTopic(event) {
+		if (event.pointerType !== "touch") return;
+		var targetNode = event.target.closest ? event.target.closest(".topic-node") : null;
+		if (targetNode) return;
+		touchTopicId = null;
+		clearActiveTopic();
 	}
 
 	topics.sort(function (first, second) {
@@ -389,14 +411,11 @@
 	});
 	buildConnections();
 
-	searchField.addEventListener("input", updateSearch);
-	searchForm.addEventListener("submit", function (event) {
-		event.preventDefault();
-		var match = findTopic(searchField.value);
-		if (match) window.location.href = match.url;
-		else updateSearch();
+	svg.addEventListener("pointermove", activateNearestTopic);
+	svg.addEventListener("pointerdown", clearTouchTopic);
+	svg.addEventListener("pointerleave", function (event) {
+		if (event.pointerType !== "touch" && !touchTopicId) clearActiveTopic();
 	});
-
 	renderGraph();
 	if (window.ResizeObserver) {
 		new ResizeObserver(function () {
