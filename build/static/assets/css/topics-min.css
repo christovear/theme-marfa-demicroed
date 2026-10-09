@@ -12,6 +12,7 @@
 
 .topics-header h1 {
 	margin-top: 0;
+	text-transform: none;
 }
 
 .topics-status {
