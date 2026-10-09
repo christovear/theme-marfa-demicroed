@@ -57,7 +57,7 @@
 }
 
 .topic-edge {
-	stroke: var(--text-strong);
+	stroke: var(--link-underline);
 	stroke-linecap: round;
 	vector-effect: non-scaling-stroke;
 	opacity: 0;
@@ -69,7 +69,7 @@
 }
 
 .topic-edge.is-active {
-	stroke: var(--text-strong);
+	stroke: var(--link-underline);
 	opacity: .62;
 }
 
