@@ -1,3 +1,11 @@
+:root {
+	--topic-dot: #b4233f;
+}
+
+:root[data-theme="dark"] {
+	--topic-dot: #e06c75;
+}
+
 .topics-page {
 	width: min(1040px, calc(100vw - 40px));
 	margin-left: 50%;
@@ -65,12 +73,13 @@
 }
 
 .topic-edge.is-strong {
-	opacity: .09;
+	opacity: .24;
 }
 
 .topic-edge.is-active {
 	stroke: var(--link-underline);
-	opacity: .62;
+	stroke-width: 1.75px;
+	opacity: 1;
 }
 
 .topic-node {
@@ -85,7 +94,7 @@
 }
 
 .topic-node .topic-node-dot {
-	fill: var(--text-strong);
+	fill: var(--topic-dot);
 	transform-box: fill-box;
 	transform-origin: center;
 	transition: fill .16s ease, opacity .16s ease, transform .16s ease;
@@ -134,7 +143,7 @@
 }
 
 .topics-graph.has-active .topic-edge:not(.is-active) {
-	opacity: .015;
+	opacity: .04;
 }
 
 .topics-status strong {
