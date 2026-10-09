@@ -106,132 +106,106 @@
 		var maxCount = topics.reduce(function (largest, topic) {
 			return Math.max(largest, topic.count);
 		}, 1);
-		var profile = width < 500
-			? { ringCounts: [1, 4, 4], radii: [0, .38, .72], fontMaximum: 19, padding: 34 }
-			: (width < 760
-				? { ringCounts: [1, 5, 8], radii: [0, .38, .74], fontMaximum: 22, padding: 46 }
-				: { ringCounts: [1, 6, 12], radii: [0, .4, .76], fontMaximum: 26, padding: 58 });
-		var labelLimit = Math.min(topics.length, profile.ringCounts.reduce(function (total, count) {
-			return total + count;
-		}, 0));
+		var labelLimit = width < 500 ? 14 : (width < 760 ? 20 : 30);
+		var padding = width < 500 ? 34 : 52;
 		var centerX = width / 2;
 		var centerY = height / 2;
-		var radiusX = Math.max(20, (width / 2) - profile.padding);
-		var radiusY = Math.max(20, (height / 2) - profile.padding);
-		var nodes = [];
-		var orbits = [];
-
-		function addNode(topic, index, labeled, x, y) {
-			nodes.push({
+		var nodes = topics.map(function (topic, index) {
+			var seed = hashString(topic.id);
+			var angle = ((seed % 3600) / 3600) * Math.PI * 2;
+			var orbit = 0.18 + ((((seed >>> 7) % 1000) / 1000) * 0.76);
+			var radiusX = Math.max(20, (width / 2) - padding);
+			var radiusY = Math.max(20, (height / 2) - padding);
+			var fontSize = topicScale(topic.count, 12, width < 500 ? 21 : 29, maxCount);
+			return {
 				id: topic.id,
 				label: topic.label,
 				url: topic.url,
 				count: topic.count,
 				index: index,
-				labeled: labeled,
-				fontSize: topicScale(topic.count, 12, profile.fontMaximum, maxCount),
+				labeled: index < labelLimit,
+				fontSize: fontSize,
 				dotRadius: topicScale(topic.count, 2.5, 7.5, maxCount),
-				x: x,
-				y: y,
-				labelOffsetY: 0
+				x: centerX + (Math.cos(angle) * radiusX * orbit),
+				y: centerY + (Math.sin(angle) * radiusY * orbit),
+				vx: 0,
+				vy: 0
+			};
+		});
+		var layoutById = {};
+		nodes.forEach(function (node) { layoutById[node.id] = node; });
+		var layoutEdges = connections.filter(function (connection) {
+			return connection.weight >= 2 && layoutById[connection.source] && layoutById[connection.target];
+		});
+
+		for (var iteration = 0; iteration < 150; iteration += 1) {
+			var cooling = 1 - (iteration / 150);
+			for (var first = 0; first < nodes.length; first += 1) {
+				for (var second = first + 1; second < nodes.length; second += 1) {
+					var firstNode = nodes[first];
+					var secondNode = nodes[second];
+					var dx = secondNode.x - firstNode.x;
+					var dy = secondNode.y - firstNode.y;
+					var distanceSquared = Math.max(36, (dx * dx) + (dy * dy));
+					var distance = Math.sqrt(distanceSquared);
+					var repulsion = (width < 500 ? 1800 : 2400) / distanceSquared;
+					var pushX = (dx / distance) * repulsion * cooling;
+					var pushY = (dy / distance) * repulsion * cooling;
+					firstNode.vx -= pushX;
+					firstNode.vy -= pushY;
+					secondNode.vx += pushX;
+					secondNode.vy += pushY;
+				}
+			}
+
+			layoutEdges.forEach(function (connection) {
+				var source = layoutById[connection.source];
+				var target = layoutById[connection.target];
+				var dx = target.x - source.x;
+				var dy = target.y - source.y;
+				var distance = Math.max(1, Math.sqrt((dx * dx) + (dy * dy)));
+				var desired = Math.max(118, 190 - (Math.min(connection.weight, 8) * 8));
+				var pull = (distance - desired) * .00075 * cooling;
+				var pullX = (dx / distance) * pull;
+				var pullY = (dy / distance) * pull;
+				source.vx += pullX;
+				source.vy += pullY;
+				target.vx -= pullX;
+				target.vy -= pullY;
+			});
+
+			nodes.forEach(function (node) {
+				node.vx += (centerX - node.x) * .0006 * cooling;
+				node.vy += (centerY - node.y) * .0006 * cooling;
+				node.vx *= .82;
+				node.vy *= .82;
+				node.x = Math.max(padding, Math.min(width - padding, node.x + node.vx));
+				node.y = Math.max(padding, Math.min(height - padding, node.y + node.vy));
 			});
 		}
 
-		var topicIndex = 0;
-		profile.ringCounts.forEach(function (ringCount, ringIndex) {
-			var available = Math.min(ringCount, labelLimit - topicIndex);
-			if (available <= 0) return;
-			var scale = profile.radii[ringIndex];
-			if (scale === 0) {
-				addNode(topics[topicIndex], topicIndex, true, centerX, centerY);
-				topicIndex += 1;
-				return;
-			}
-
-			var ringRadiusX = radiusX * scale;
-			var ringRadiusY = radiusY * scale;
-			var angleOffset = (-Math.PI / 2) + (ringIndex === 2 ? Math.PI / Math.max(4, available) : 0);
-			orbits.push({ radiusX: ringRadiusX, radiusY: ringRadiusY, kind: "topic" });
-			for (var position = 0; position < available; position += 1) {
-				var angle = angleOffset + ((Math.PI * 2 * position) / available);
-				addNode(
-					topics[topicIndex],
-					topicIndex,
-					true,
-					centerX + (Math.cos(angle) * ringRadiusX),
-					centerY + (Math.sin(angle) * ringRadiusY)
-				);
-				topicIndex += 1;
-			}
-		});
-
-		var haloTopics = topics.slice(labelLimit).sort(function (first, second) {
-			return hashString(first.id) - hashString(second.id);
-		});
-		var haloRadii = [.84, 1];
-		haloRadii.forEach(function (scale) {
-			orbits.push({ radiusX: radiusX * scale, radiusY: radiusY * scale, kind: "halo" });
-		});
-		haloTopics.forEach(function (topic, index) {
-			var haloRing = index % haloRadii.length;
-			var position = Math.floor(index / haloRadii.length);
-			var countOnRing = Math.ceil((haloTopics.length - haloRing) / haloRadii.length);
-			var angleOffset = (-Math.PI / 2) + (haloRing ? Math.PI / Math.max(1, countOnRing) : 0);
-			var angle = angleOffset + ((Math.PI * 2 * position) / Math.max(1, countOnRing));
-			addNode(
-				topic,
-				labelLimit + index,
-				false,
-				centerX + (Math.cos(angle) * radiusX * haloRadii[haloRing]),
-				centerY + (Math.sin(angle) * radiusY * haloRadii[haloRing])
-			);
-		});
-
-		var layoutById = {};
-		nodes.forEach(function (node) { layoutById[node.id] = node; });
-		nodes.forEach(function (node) {
-			node.labelAnchor = node.labeled && Math.abs(node.x - centerX) < 45 ? "middle" : (node.x > centerX ? "end" : "start");
-			if (node.x < 165) node.labelAnchor = "start";
-			if (node.x > width - 165) node.labelAnchor = "end";
-		});
-		var labeledNodes = nodes.filter(function (node) { return node.labeled; });
-
-		function labelBounds(node) {
-			var labelWidth = node.label.length * node.fontSize * .55;
-			var edge = node.labelAnchor === "end"
-				? node.x - node.dotRadius - 7
-				: (node.labelAnchor === "middle" ? node.x : node.x + node.dotRadius + 7);
-			var centerY = node.y + node.labelOffsetY;
-			return {
-				left: node.labelAnchor === "end" ? edge - labelWidth : (node.labelAnchor === "middle" ? edge - (labelWidth / 2) : edge),
-				right: node.labelAnchor === "end" ? edge : (node.labelAnchor === "middle" ? edge + (labelWidth / 2) : edge + labelWidth),
-				top: centerY - (node.fontSize * .65),
-				bottom: centerY + (node.fontSize * .65)
-			};
-		}
-
-		for (var settle = 0; settle < 96; settle += 1) {
-			for (var firstIndex = 0; firstIndex < labeledNodes.length; firstIndex += 1) {
-				for (var secondIndex = firstIndex + 1; secondIndex < labeledNodes.length; secondIndex += 1) {
-					var firstNode = labeledNodes[firstIndex];
-					var secondNode = labeledNodes[secondIndex];
-					var firstBounds = labelBounds(firstNode);
-					var secondBounds = labelBounds(secondNode);
-					var horizontallyOverlapping = firstBounds.left < secondBounds.right + 5 && firstBounds.right + 5 > secondBounds.left;
-					var verticallyOverlapping = firstBounds.top < secondBounds.bottom + 4 && firstBounds.bottom + 4 > secondBounds.top;
-					if (!horizontallyOverlapping || !verticallyOverlapping) continue;
-
-					var overlap = Math.min(firstBounds.bottom, secondBounds.bottom) - Math.max(firstBounds.top, secondBounds.top) + 4;
-					var direction = (firstNode.y + firstNode.labelOffsetY) <= (secondNode.y + secondNode.labelOffsetY) ? 1 : -1;
-					firstNode.labelOffsetY -= (overlap / 2) * direction;
-					secondNode.labelOffsetY += (overlap / 2) * direction;
-					firstNode.labelOffsetY = Math.max(20 - firstNode.y, Math.min(height - 20 - firstNode.y, firstNode.labelOffsetY));
-					secondNode.labelOffsetY = Math.max(20 - secondNode.y, Math.min(height - 20 - secondNode.y, secondNode.labelOffsetY));
+		for (var settle = 0; settle < 18; settle += 1) {
+			for (var labelFirst = 0; labelFirst < labelLimit; labelFirst += 1) {
+				for (var labelSecond = labelFirst + 1; labelSecond < labelLimit; labelSecond += 1) {
+					var firstLabel = nodes[labelFirst];
+					var secondLabel = nodes[labelSecond];
+					var labelDx = secondLabel.x - firstLabel.x;
+					var labelDy = secondLabel.y - firstLabel.y;
+					var firstWidth = Math.min(170, firstLabel.label.length * firstLabel.fontSize * .55);
+					var secondWidth = Math.min(170, secondLabel.label.length * secondLabel.fontSize * .55);
+					var requiredX = ((firstWidth + secondWidth) / 2) + 12;
+					var requiredY = ((firstLabel.fontSize + secondLabel.fontSize) / 2) + 9;
+					if (Math.abs(labelDx) < requiredX && Math.abs(labelDy) < requiredY) {
+						var direction = labelDy >= 0 ? 1 : -1;
+						var shift = ((requiredY - Math.abs(labelDy)) / 2) + 1;
+						firstLabel.y = Math.max(padding, firstLabel.y - (shift * direction));
+						secondLabel.y = Math.min(height - padding, secondLabel.y + (shift * direction));
+					}
 				}
 			}
 		}
 
-		return { nodes: nodes, byId: layoutById, orbits: orbits };
+		return { nodes: nodes, byId: layoutById };
 	}
 
 	function setStatus(topic, touchSelection) {
@@ -305,9 +279,9 @@
 		svg.setAttribute("height", height);
 
 		var title = makeSvgElement("title", { id: graphTitleId });
-		title.textContent = "Interactive topic orbit";
+		title.textContent = "Interactive topic constellation";
 		var description = makeSvgElement("desc", { id: graphDescriptionId });
-		description.textContent = "Frequently used topics occupy the inner rings. Smaller topics form the outer halo. Lines connect topics that appear together in posts.";
+		description.textContent = "Topic size represents post count. Lines connect topics that appear together in posts.";
 		svg.appendChild(title);
 		svg.appendChild(description);
 
@@ -319,20 +293,9 @@
 		emptyState.hidden = true;
 
 		var layout = createLayout(width, height);
-		var orbitLayer = makeSvgElement("g", { "aria-hidden": "true" });
 		var edgeLayer = makeSvgElement("g", { "aria-hidden": "true" });
 		var dotLayer = makeSvgElement("g", { "aria-hidden": "true" });
 		var labelLayer = makeSvgElement("g", {});
-
-		layout.orbits.forEach(function (orbit) {
-			orbitLayer.appendChild(makeSvgElement("ellipse", {
-				cx: (width / 2).toFixed(2),
-				cy: (height / 2).toFixed(2),
-				rx: orbit.radiusX.toFixed(2),
-				ry: orbit.radiusY.toFixed(2),
-				"class": "topic-orbit is-" + orbit.kind
-			}));
-		});
 
 		connections.forEach(function (connection) {
 			var source = layout.byId[connection.source];
@@ -344,7 +307,7 @@
 				x2: target.x.toFixed(2),
 				y2: target.y.toFixed(2),
 				"stroke-width": Math.min(3, .65 + (connection.weight * .22)).toFixed(2),
-				"class": "topic-edge" + (connection.weight >= 4 ? " is-strong" : "")
+				"class": "topic-edge" + (connection.weight >= 3 ? " is-strong" : "")
 			});
 			edgeLayer.appendChild(line);
 			edgeElements.push({ element: line, connection: connection });
@@ -370,13 +333,13 @@
 
 			var group = makeSvgElement("g", { transform: "translate(" + node.x.toFixed(2) + " " + node.y.toFixed(2) + ")" });
 			var hit = makeSvgElement("circle", { "class": "topic-node-hit", r: 22 });
-			var labelAnchor = node.labelAnchor || "start";
 			var label = makeSvgElement("text", {
-				x: (labelAnchor === "end" ? -node.dotRadius - 7 : (labelAnchor === "middle" ? 0 : node.dotRadius + 7)).toFixed(2),
-				y: (node.labelOffsetY + (node.fontSize * .35)).toFixed(2),
+				x: (node.dotRadius + 7).toFixed(2),
+				y: ".35em",
 				"font-size": node.fontSize.toFixed(2),
-				"text-anchor": labelAnchor
+				"text-anchor": node.x > width - 165 ? "end" : "start"
 			});
+			if (node.x > width - 165) label.setAttribute("x", (-node.dotRadius - 7).toFixed(2));
 			label.textContent = node.label;
 			group.appendChild(hit);
 			group.appendChild(label);
@@ -412,7 +375,6 @@
 			});
 		});
 
-		svg.appendChild(orbitLayer);
 		svg.appendChild(edgeLayer);
 		svg.appendChild(dotLayer);
 		svg.appendChild(labelLayer);
