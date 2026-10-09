@@ -31,7 +31,6 @@
 	var adjacency = {};
 	var nodeElements = {};
 	var edgeElements = [];
-	var renderedNodes = [];
 	var hoverTopicId = null;
 	var touchTopicId = null;
 	var lastPointerType = "";
@@ -291,7 +290,6 @@
 		emptyState.hidden = true;
 
 		var layout = createLayout(width, height);
-		renderedNodes = layout.nodes;
 		var edgeLayer = makeSvgElement("g", { "aria-hidden": "true" });
 		var nodeLayer = makeSvgElement("g", {});
 
@@ -339,6 +337,14 @@
 			nodeLayer.appendChild(link);
 			nodeElements[node.id] = link;
 
+			link.addEventListener("pointerenter", function (event) {
+				if (event.pointerType === "touch") return;
+				touchTopicId = null;
+				activateTopic(node.id, false);
+			});
+			link.addEventListener("pointerleave", function (event) {
+				if (event.pointerType !== "touch") clearActiveTopic();
+			});
 			link.addEventListener("pointerdown", function (event) {
 				lastPointerType = event.pointerType || "";
 			});
@@ -365,32 +371,6 @@
 		else setStatus(null);
 	}
 
-	function activateNearestTopic(event) {
-		if (event.pointerType === "touch" || !renderedNodes.length) return;
-		var bounds = svg.getBoundingClientRect();
-		var viewBox = svg.viewBox.baseVal;
-		var pointerX = (event.clientX - bounds.left) * (viewBox.width / bounds.width);
-		var pointerY = (event.clientY - bounds.top) * (viewBox.height / bounds.height);
-		var closest = null;
-		var closestDistance = Infinity;
-
-		renderedNodes.forEach(function (node) {
-			var dx = node.x - pointerX;
-			var dy = node.y - pointerY;
-			var distance = Math.sqrt((dx * dx) + (dy * dy));
-			if (distance < closestDistance) {
-				closest = node;
-				closestDistance = distance;
-			}
-		});
-
-		if (closest && closestDistance <= 54) {
-			if (hoverTopicId !== closest.id) activateTopic(closest.id);
-		} else if (hoverTopicId) {
-			clearActiveTopic();
-		}
-	}
-
 	function clearTouchTopic(event) {
 		if (event.pointerType !== "touch") return;
 		var targetNode = event.target.closest ? event.target.closest(".topic-node") : null;
@@ -411,7 +391,6 @@
 	});
 	buildConnections();
 
-	svg.addEventListener("pointermove", activateNearestTopic);
 	svg.addEventListener("pointerdown", clearTouchTopic);
 	svg.addEventListener("pointerleave", function (event) {
 		if (event.pointerType !== "touch" && !touchTopicId) clearActiveTopic();

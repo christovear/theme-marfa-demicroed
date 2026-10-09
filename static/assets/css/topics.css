@@ -57,7 +57,7 @@
 }
 
 .topic-edge {
-	stroke: var(--separator);
+	stroke: var(--text-strong);
 	stroke-linecap: round;
 	vector-effect: non-scaling-stroke;
 	opacity: 0;
@@ -69,7 +69,7 @@
 }
 
 .topic-edge.is-active {
-	stroke: var(--accent);
+	stroke: var(--text-strong);
 	opacity: .62;
 }
 
@@ -85,7 +85,7 @@
 }
 
 .topic-node .topic-node-dot {
-	fill: currentColor;
+	fill: var(--text-strong);
 	transform-box: fill-box;
 	transform-origin: center;
 	transition: fill .16s ease, opacity .16s ease, transform .16s ease;
@@ -110,7 +110,7 @@
 .topic-node:hover,
 .topic-node:focus-visible,
 .topic-node.is-active {
-	color: var(--accent);
+	color: var(--text-strong);
 }
 
 .topic-node:hover .topic-node-dot,
@@ -120,7 +120,7 @@
 }
 
 .topic-node:focus-visible .topic-node-hit {
-	stroke: var(--accent);
+	stroke: var(--text-strong);
 	stroke-width: 2px;
 }
 
