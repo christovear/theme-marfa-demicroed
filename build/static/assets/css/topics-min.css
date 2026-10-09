@@ -93,7 +93,7 @@
 	fill: transparent;
 }
 
-.topic-node .topic-node-dot {
+.topic-node-visual .topic-node-dot {
 	fill: var(--topic-dot);
 	transform-box: fill-box;
 	transform-origin: center;
@@ -122,9 +122,7 @@
 	color: var(--text-strong);
 }
 
-.topic-node:hover .topic-node-dot,
-.topic-node:focus-visible .topic-node-dot,
-.topic-node.is-active .topic-node-dot {
+.topic-node-visual.is-active .topic-node-dot {
 	transform: scale(1.65);
 }
 
@@ -138,7 +136,8 @@
 	opacity: 1;
 }
 
-.topics-graph.has-active .topic-node.is-dim {
+.topics-graph.has-active .topic-node.is-dim,
+.topics-graph.has-active .topic-node-visual.is-dim {
 	opacity: .18;
 }
 
@@ -194,7 +193,7 @@
 
 @media (prefers-reduced-motion: reduce) {
 	.topic-edge,
-	.topic-node .topic-node-dot,
+	.topic-node-visual .topic-node-dot,
 	.topic-node text {
 		transition: none;
 	}

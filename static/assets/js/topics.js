@@ -243,10 +243,11 @@
 
 		svg.classList.add("has-active");
 		Object.keys(nodeElements).forEach(function (id) {
-			var element = nodeElements[id];
-			element.classList.toggle("is-active", id === topicId);
-			element.classList.toggle("is-related", id !== topicId && Boolean(relatedIds[id]));
-			element.classList.toggle("is-dim", !relatedIds[id]);
+			nodeElements[id].forEach(function (element) {
+				element.classList.toggle("is-active", id === topicId);
+				element.classList.toggle("is-related", id !== topicId && Boolean(relatedIds[id]));
+				element.classList.toggle("is-dim", !relatedIds[id]);
+			});
 		});
 		edgeElements.forEach(function (entry) {
 			entry.element.classList.toggle("is-active", entry.connection.source === topicId || entry.connection.target === topicId);
@@ -258,7 +259,9 @@
 		hoverTopicId = null;
 		svg.classList.remove("has-active");
 		Object.keys(nodeElements).forEach(function (id) {
-			nodeElements[id].classList.remove("is-active", "is-related", "is-dim");
+			nodeElements[id].forEach(function (element) {
+				element.classList.remove("is-active", "is-related", "is-dim");
+			});
 		});
 		edgeElements.forEach(function (entry) {
 			entry.element.classList.remove("is-active");
@@ -291,7 +294,8 @@
 
 		var layout = createLayout(width, height);
 		var edgeLayer = makeSvgElement("g", { "aria-hidden": "true" });
-		var nodeLayer = makeSvgElement("g", {});
+		var dotLayer = makeSvgElement("g", { "aria-hidden": "true" });
+		var labelLayer = makeSvgElement("g", {});
 
 		connections.forEach(function (connection) {
 			var source = layout.byId[connection.source];
@@ -310,6 +314,14 @@
 		});
 
 		layout.nodes.forEach(function (node) {
+			var visual = makeSvgElement("g", {
+				"class": "topic-node-visual" + (node.labeled ? "" : " is-secondary"),
+				transform: "translate(" + node.x.toFixed(2) + " " + node.y.toFixed(2) + ")"
+			});
+			var dot = makeSvgElement("circle", { "class": "topic-node-dot", r: node.dotRadius.toFixed(2) });
+			visual.appendChild(dot);
+			dotLayer.appendChild(visual);
+
 			var link = makeSvgElement("a", {
 				href: node.url,
 				"class": "topic-node" + (node.labeled ? "" : " is-secondary"),
@@ -321,7 +333,6 @@
 
 			var group = makeSvgElement("g", { transform: "translate(" + node.x.toFixed(2) + " " + node.y.toFixed(2) + ")" });
 			var hit = makeSvgElement("circle", { "class": "topic-node-hit", r: 22 });
-			var dot = makeSvgElement("circle", { "class": "topic-node-dot", r: node.dotRadius.toFixed(2) });
 			var label = makeSvgElement("text", {
 				x: (node.dotRadius + 7).toFixed(2),
 				y: ".35em",
@@ -331,11 +342,10 @@
 			if (node.x > width - 165) label.setAttribute("x", (-node.dotRadius - 7).toFixed(2));
 			label.textContent = node.label;
 			group.appendChild(hit);
-			group.appendChild(dot);
 			group.appendChild(label);
 			link.appendChild(group);
-			nodeLayer.appendChild(link);
-			nodeElements[node.id] = link;
+			labelLayer.appendChild(link);
+			nodeElements[node.id] = [visual, link];
 
 			link.addEventListener("pointerenter", function (event) {
 				if (event.pointerType === "touch") return;
@@ -366,7 +376,8 @@
 		});
 
 		svg.appendChild(edgeLayer);
-		svg.appendChild(nodeLayer);
+		svg.appendChild(dotLayer);
+		svg.appendChild(labelLayer);
 		if (hoverTopicId) activateTopic(hoverTopicId);
 		else setStatus(null);
 	}
