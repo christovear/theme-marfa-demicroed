@@ -249,8 +249,8 @@
       "ft" : 16,
       "ma" : 0,
       "oA" : 0,
-      "oAP" : "\/build\/static\/assets\/css\/highlight-min.css",
-      "oF" : 0,
+      "oAP" : "\/build\/static\/assets\/css\/highlight.css",
+      "oF" : 2,
       "pg" : 0
     },
     "\/static\/assets\/css\/normalize.css" : {
@@ -271,8 +271,8 @@
       "ft" : 16,
       "ma" : 0,
       "oA" : 0,
-      "oAP" : "\/build\/static\/assets\/css\/style-min.css",
-      "oF" : 0,
+      "oAP" : "\/build\/static\/assets\/css\/style.css",
+      "oF" : 2,
       "pg" : 0
     },
     "\/static\/assets\/css\/topics.css" : {
@@ -282,8 +282,8 @@
       "ft" : 16,
       "ma" : 0,
       "oA" : 0,
-      "oAP" : "\/build\/static\/assets\/css\/topics-min.css",
-      "oF" : 0,
+      "oAP" : "\/build\/static\/assets\/css\/topics.css",
+      "oF" : 2,
       "pg" : 0
     },
     "\/static\/assets\/js\/topics.js" : {
@@ -292,8 +292,8 @@
       "ma" : 0,
       "mi" : 1,
       "oA" : 0,
-      "oAP" : "\/build\/static\/assets\/js\/topics-min.js",
-      "oF" : 0,
+      "oAP" : "\/build\/static\/assets\/js\/topics.js",
+      "oF" : 2,
       "sC" : 3,
       "tS" : 0
     },
@@ -317,7 +317,8 @@
     "displayValue" : "theme-marfa-demicroed",
     "displayValueWasSetByUser" : 0,
     "iconImageName" : "brackets-red",
-    "iconImageWasSetByUser" : 0
+    "iconImageWasSetByUser" : 0,
+    "lastBuiltDate" : 813614925.63734901
   },
   "projectSettings" : {
     "abortBuildOnError" : 1,

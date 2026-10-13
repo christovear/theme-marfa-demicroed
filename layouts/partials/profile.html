@@ -3,7 +3,7 @@
   <section class="profile-wrapper">
     <header class="h-card">
       <span class="profile-avatar-slot">
-        <a class="u-url profile-home-link" href="/" aria-label="Home" title="Home">
+        <a class="u-url profile-home-link" href="{{ .Site.Home.RelPermalink }}" aria-label="Home" title="Home">
           {{ with $author.avatar }}<img id="avatar" class="u-photo" src="{{ . }}" width="96" height="96" alt="{{ $.Site.Title }}">{{ end }}
         </a>
       </span>

@@ -1,4 +1,5 @@
 {{- $author := partial "site-author.html" . -}}
+{{- $homeURL := .Site.Home.RelPermalink -}}
 <style id="persistent-navigation-styles">
   :root {
     --menu-red: #ee4792;
@@ -272,7 +273,7 @@
     <span class="nav-home-target" aria-hidden="true"></span>
     <span class="nav-brand-label is-home-label" aria-hidden="true">DFTE</span>
   {{ else }}
-    <a class="nav-home-button" href="/" aria-label="Home" title="Home">
+    <a class="nav-home-button" href="{{ $homeURL }}" aria-label="Home" title="Home">
       {{ with $author.avatar }}<img class="nav-home-avatar" src="{{ . }}" width="24" height="24" alt="">{{ end }}
     </a>
     <span class="nav-brand-label" aria-hidden="true">DFTE</span>
@@ -295,13 +296,13 @@
         <span class="nav-menu-line" aria-hidden="true"></span>
       </button>
       <span class="nav-menu-panel" id="nav-menu-panel" hidden>
-        <a href="/"{{ if .IsHome }} aria-current="page"{{ end }}>Home</a>
+        <a href="{{ $homeURL }}"{{ if .IsHome }} aria-current="page"{{ end }}>Home</a>
         {{ $currentPage := . }}
         {{ range .Site.Menus.main }}
           {{ if and .Page .Page.Params.redirect }}
             <a href="{{ .Page.Params.redirect }}">{{ .Name }}</a>
           {{ else }}
-            <a href="{{ .URL | relLangURL | safeURL }}"{{ if $currentPage.IsMenuCurrent "main" . }} aria-current="page"{{ end }}>{{ .Name }}</a>
+            <a href="{{ .URL | relLangURL }}"{{ if $currentPage.IsMenuCurrent "main" . }} aria-current="page"{{ end }}>{{ .Name }}</a>
           {{ end }}
         {{ end }}
         <a href="{{ "topics/" | relLangURL }}"{{ if eq .Type "topics" }} aria-current="page"{{ end }}>Topics</a>

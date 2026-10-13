@@ -1,0 +1,26 @@
+<li>
+<article class="h-entry">
+  {{ if .Title }}
+  <section class="post-body">
+  <header>
+	<h2><a href="{{ .Permalink }}" class="p-name">{{ .Title }}</a></h2>
+  </header>
+  <section class="post-body e-content">
+	{{ .Content }}
+  </section>
+  </section>
+  {{ else }}
+	<div class="post-body e-content">{{ .Content }}</div>
+  {{ end }}
+  <a href="{{ .Permalink }}" class="u-url">
+	<aside class="dates">
+	  {{ if eq .Date.Year now.Year }}
+	  <time datetime="{{ .Date.Format "2006-01-02 15:04:05 -0700" }}" class="dt-published">→ {{ .Date.Format "3:04 PM Monday, Jan 2" }}</time>
+	  {{ else }}
+	  <time datetime="{{ .Date.Format "2006-01-02 15:04:05 -0700" }}" class="dt-published">→ {{ .Date.Format "3:04 PM Monday, Jan 2, 2006" }}</time>
+	  {{ end }}
+	</aside>
+  </a>
+</article>
+<span class="separator"><span class="divider"></span></span>
+</li>
