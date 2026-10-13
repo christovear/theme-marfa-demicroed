@@ -23,6 +23,10 @@
 	text-transform: none;
 }
 
+.topics-orientation-message {
+	display: none;
+}
+
 .topics-status {
 	color: var(--text-muted);
 }
@@ -177,6 +181,22 @@
 		min-height: 540px;
 	}
 
+}
+
+@media screen and (max-width: 700px) and (orientation: portrait) {
+	.topics-orientation-message {
+		display: block;
+		max-width: 280px;
+		margin: 72px auto 120px;
+		color: var(--text-muted);
+		font-size: 17px;
+		line-height: 1.55;
+		text-align: center;
+	}
+
+	.topics-constellation {
+		display: none;
+	}
 }
 
 @media screen and (max-width: 430px) {

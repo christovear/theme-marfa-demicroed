@@ -1066,6 +1066,16 @@ article #post-list li {
 	color: var(--text-muted) !important;
 }
 
+/* The bookshelf shortcode uses plain list items, so override the post list marker. */
+.post-body ul.bookshelf > li {
+	list-style-type: none !important;
+	padding-left: 0;
+}
+
+.post-body ul.bookshelf > li::marker {
+	content: none;
+}
+
 .bookshelf_book {
   padding-bottom: 7px;
 }
