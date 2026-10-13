@@ -720,6 +720,10 @@ footer #wrapper {
 	margin: 120px 0 0 0;
 }
 
+.ancillary-page {
+	margin-top: 152px;
+}
+
 /* Post Navigation */
 #post-nav {
 	text-align:center;
@@ -809,6 +813,10 @@ h2.headline {
 
 	.post {
 		margin: 50px 0;
+	}
+
+	.ancillary-page {
+		margin-top: 142px;
 	}
 
 	h1 {
@@ -1074,6 +1082,10 @@ article #post-list li {
 
 .post-body ul.bookshelf > li::marker {
 	content: none;
+}
+
+.ancillary-page .post-body > ul.bookshelf {
+	margin-top: 1.75rem;
 }
 
 .bookshelf_book {
