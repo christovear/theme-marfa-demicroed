@@ -1,5 +1,13 @@
 {{- $author := partial "site-author.html" . -}}
 <style id="persistent-navigation-styles">
+  :root {
+    --menu-red: #ee4792;
+  }
+
+  :root[data-theme="dark"] {
+    --menu-red: #c63a62;
+  }
+
   body nav.main-nav {
     display: flex !important;
     align-items: center !important;
@@ -64,15 +72,16 @@
     color: var(--menu-red, #ee4792);
     background: transparent;
     border: 0;
-    border-radius: 7px;
     cursor: pointer;
     -webkit-appearance: none;
     appearance: none;
+    transition: opacity .2s ease;
   }
 
   .main-nav .nav-menu-toggle:hover,
   .main-nav .nav-menu-toggle[aria-expanded="true"] {
-    background: var(--menu-red-soft, #fcdae9);
+    background: transparent;
+    opacity: .72;
   }
 
   .main-nav .nav-menu-toggle:focus-visible {
@@ -113,8 +122,8 @@
     margin: 0 !important;
     padding: 10px 12px;
     color: var(--text-strong, #000);
-    border-radius: 6px;
     box-shadow: none !important;
+    text-decoration: none;
     white-space: nowrap;
   }
 
@@ -122,8 +131,12 @@
   .main-nav .nav-menu-panel a:focus-visible,
   .main-nav .nav-menu-panel a[aria-current="page"] {
     color: var(--text-strong, #000);
-    background: var(--menu-red-soft, #fcdae9);
+    background: transparent;
     box-shadow: none !important;
+    text-decoration: underline;
+    text-decoration-color: var(--menu-red, #ee4792);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
   }
 
   .main-nav .nav-menu-panel a:focus-visible {
@@ -283,6 +296,7 @@
       </button>
       <span class="nav-menu-panel" id="nav-menu-panel" hidden>
         <a href="/"{{ if .IsHome }} aria-current="page"{{ end }}>Home</a>
+        <a href="{{ "topics/" | relLangURL }}"{{ if eq .Type "topics" }} aria-current="page"{{ end }}>Topics</a>
         {{ $currentPage := . }}
         {{ range .Site.Menus.main }}
           {{ if .Page.Params.redirect }}

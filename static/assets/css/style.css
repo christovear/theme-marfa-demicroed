@@ -13,7 +13,6 @@
 	--accent: #ee4792;
 	--accent-soft: #fcdae9;
 	--menu-red: #ee4792;
-	--menu-red-soft: #fcdae9;
 	--link-text: #000;
 	--link-underline: #fcdae9;
 	--link-hover-text: #000;
@@ -40,7 +39,6 @@
 	--accent: #3391ff;
 	--accent-soft: #004daa;
 	--menu-red: #c63a62;
-	--menu-red-soft: rgba(134, 24, 57, .38);
 	--link-text: #abb2bf;
 	--link-underline: #861839;
 	--link-hover-text: #abb2bf;
@@ -250,15 +248,16 @@ nav.main-nav a.nav-home-button:hover {
 	color: var(--menu-red);
 	background: transparent;
 	border: 0;
-	border-radius: 7px;
 	cursor: pointer;
 	-webkit-appearance: none;
 	appearance: none;
+	transition: opacity .2s ease;
 }
 
 .main-nav .nav-menu-toggle:hover,
 .main-nav .nav-menu-toggle[aria-expanded="true"] {
-	background: var(--menu-red-soft);
+	background: transparent;
+	opacity: .72;
 }
 
 .main-nav .nav-menu-toggle:focus-visible {
@@ -299,8 +298,8 @@ nav.main-nav a.nav-home-button:hover {
 	margin: 0 !important;
 	padding: 10px 12px;
 	color: var(--text-strong);
-	border-radius: 6px;
 	box-shadow: none !important;
+	text-decoration: none;
 	white-space: nowrap;
 }
 
@@ -308,8 +307,12 @@ nav.main-nav a.nav-home-button:hover {
 .main-nav .nav-menu-panel a:focus-visible,
 .main-nav .nav-menu-panel a[aria-current="page"] {
 	color: var(--text-strong);
-	background: var(--menu-red-soft);
+	background: transparent;
 	box-shadow: none !important;
+	text-decoration: underline;
+	text-decoration-color: var(--menu-red);
+	text-decoration-thickness: 2px;
+	text-underline-offset: 4px;
 }
 
 .main-nav .nav-menu-panel a:focus-visible {
