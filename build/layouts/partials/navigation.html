@@ -298,7 +298,7 @@
         <a href="/"{{ if .IsHome }} aria-current="page"{{ end }}>Home</a>
         {{ $currentPage := . }}
         {{ range .Site.Menus.main }}
-          {{ if .Page.Params.redirect }}
+          {{ if and .Page .Page.Params.redirect }}
             <a href="{{ .Page.Params.redirect }}">{{ .Name }}</a>
           {{ else }}
             <a href="{{ .URL | relLangURL | safeURL }}"{{ if $currentPage.IsMenuCurrent "main" . }} aria-current="page"{{ end }}>{{ .Name }}</a>
