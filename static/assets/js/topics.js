@@ -8,7 +8,6 @@
 
 	var svgNamespace = "http://www.w3.org/2000/svg";
 	var linkNamespace = "http://www.w3.org/1999/xlink";
-	var graphTitleId = "topics-graph-title";
 	var graphDescriptionId = "topics-graph-description";
 	var data;
 
@@ -333,11 +332,8 @@
 		svg.setAttribute("viewBox", "0 0 " + width + " " + height);
 		svg.setAttribute("height", height);
 
-		var title = makeSvgElement("title", { id: graphTitleId });
-		title.textContent = "Interactive topic cloud";
 		var description = makeSvgElement("desc", { id: graphDescriptionId });
 		description.textContent = "Topics form an organic cloud. Topic size represents post count, and lines connect topics that appear together in posts.";
-		svg.appendChild(title);
 		svg.appendChild(description);
 
 		if (!topics.length) {

@@ -35,7 +35,7 @@
     <section class="topics-constellation" aria-labelledby="topics-cloud-title">
       <h2 id="topics-cloud-title" class="visually-hidden">Topic cloud</h2>
       <div class="topics-graph-frame">
-        <svg class="topics-graph" role="img" aria-labelledby="topics-graph-title topics-graph-description"></svg>
+        <svg class="topics-graph" role="img" aria-label="Topic cloud" aria-describedby="topics-graph-description"></svg>
         <div class="topics-graph-empty" hidden>No categories are available yet.</div>
       </div>
       <p class="topics-status" aria-live="polite">Preparing the topic cloud…</p>
@@ -44,5 +44,5 @@
   </article>
 
   <script id="topics-data" type="application/json">{{ dict "topics" $topics "postTopicSets" $postTopicSets | jsonify | safeJS }}</script>
-  <script src="{{ "assets/js/topics.js" | relURL }}?v=20261012-1" defer></script>
+  <script src="{{ "assets/js/topics.js" | relURL }}?v=20261013-2" defer></script>
 {{ end }}
