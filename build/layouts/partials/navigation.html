@@ -296,7 +296,6 @@
       </button>
       <span class="nav-menu-panel" id="nav-menu-panel" hidden>
         <a href="/"{{ if .IsHome }} aria-current="page"{{ end }}>Home</a>
-        <a href="{{ "topics/" | relLangURL }}"{{ if eq .Type "topics" }} aria-current="page"{{ end }}>Topics</a>
         {{ $currentPage := . }}
         {{ range .Site.Menus.main }}
           {{ if .Page.Params.redirect }}
@@ -305,6 +304,7 @@
             <a href="{{ .URL | relLangURL | safeURL }}"{{ if $currentPage.IsMenuCurrent "main" . }} aria-current="page"{{ end }}>{{ .Name }}</a>
           {{ end }}
         {{ end }}
+        <a href="{{ "topics/" | relLangURL }}"{{ if eq .Type "topics" }} aria-current="page"{{ end }}>Topics</a>
       </span>
     </span>
   </span>
