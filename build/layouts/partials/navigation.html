@@ -24,6 +24,10 @@
     box-shadow: var(--nav-shadow, 0 1px 0 rgba(0, 0, 0, .06), 0 5px 12px rgba(0, 0, 0, .08));
   }
 
+  body nav.main-nav.menu-is-open {
+    z-index: 1200 !important;
+  }
+
   :root[data-theme="dark"] body nav.main-nav.is-scrolled {
     box-shadow: 0 1px 0 rgba(255, 255, 255, .075), 0 3px 7px rgba(0, 0, 0, .30), 0 8px 18px rgba(0, 0, 0, .36);
   }
@@ -38,6 +42,93 @@
     align-items: center !important;
     justify-content: flex-end;
     margin-left: auto;
+  }
+
+  .main-nav .nav-menu {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    margin-left: 12px;
+  }
+
+  .main-nav .nav-menu-toggle {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 4px;
+    width: 32px;
+    height: 32px;
+    margin: -4px;
+    padding: 7px;
+    color: var(--menu-red, #ee4792);
+    background: transparent;
+    border: 0;
+    border-radius: 7px;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .main-nav .nav-menu-toggle:hover,
+  .main-nav .nav-menu-toggle[aria-expanded="true"] {
+    background: var(--menu-red-soft, #fcdae9);
+  }
+
+  .main-nav .nav-menu-toggle:focus-visible {
+    outline: 2px solid var(--menu-red, #ee4792);
+    outline-offset: 3px;
+  }
+
+  .main-nav .nav-menu-line {
+    display: block;
+    width: 18px;
+    height: 2px;
+    border-radius: 2px;
+    background: currentColor;
+  }
+
+  .main-nav .nav-menu-panel {
+    position: absolute;
+    top: calc(100% + 9px);
+    right: -8px;
+    display: grid;
+    min-width: 190px;
+    max-width: calc(100vw - 24px);
+    padding: 8px;
+    background: var(--nav-bg, rgba(255, 255, 255, .96));
+    border: 1px solid var(--border, #eee);
+    border-radius: 0 0 10px 10px;
+    box-shadow: var(--nav-shadow, 0 1px 0 rgba(0, 0, 0, .06), 0 5px 12px rgba(0, 0, 0, .08));
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+  }
+
+  .main-nav .nav-menu-panel[hidden] {
+    display: none !important;
+  }
+
+  .main-nav .nav-menu-panel a {
+    display: block;
+    margin: 0 !important;
+    padding: 10px 12px;
+    color: var(--text-strong, #000);
+    border-radius: 6px;
+    box-shadow: none !important;
+    white-space: nowrap;
+  }
+
+  .main-nav .nav-menu-panel a:hover,
+  .main-nav .nav-menu-panel a:focus-visible,
+  .main-nav .nav-menu-panel a[aria-current="page"] {
+    color: var(--text-strong, #000);
+    background: var(--menu-red-soft, #fcdae9);
+    box-shadow: none !important;
+  }
+
+  .main-nav .nav-menu-panel a:focus-visible {
+    outline: 2px solid var(--menu-red, #ee4792);
+    outline-offset: -2px;
   }
 
   .main-nav .nav-brand {
@@ -176,20 +267,6 @@
   </span>
 
   <span class="nav-links">
-    {{ if .IsHome }}
-    <a class="normal paged-home-link" href="/" hidden> <span class="arrow">←</span> Home</a>
-    {{ else }}
-    <a class="normal" href="/"> <span class="arrow">←</span> Home</a>
-    {{ end }}
-
-    {{ range .Site.Menus.main }}
-      {{ if .Page.Params.redirect }}
-        <a href="{{ .Page.Params.redirect }}">{{ .Name }}</a>
-      {{ else }}
-        <a href="{{ .URL | relLangURL | safeURL }}">{{ .Name }}</a>
-      {{ end }}
-    {{ end }}
-
     <button class="theme-toggle" type="button" aria-label="Switch to dark mode" aria-pressed="false" title="Switch to dark mode">
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
         <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.5"></circle>
@@ -197,6 +274,25 @@
         <path d="M12 7.75a4.25 4.25 0 0 0 0 8.5v-8.5z" fill="currentColor"></path>
       </svg>
     </button>
+
+    <span class="nav-menu">
+      <button class="nav-menu-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="nav-menu-panel">
+        <span class="nav-menu-line" aria-hidden="true"></span>
+        <span class="nav-menu-line" aria-hidden="true"></span>
+        <span class="nav-menu-line" aria-hidden="true"></span>
+      </button>
+      <span class="nav-menu-panel" id="nav-menu-panel" hidden>
+        <a href="/"{{ if .IsHome }} aria-current="page"{{ end }}>Home</a>
+        {{ $currentPage := . }}
+        {{ range .Site.Menus.main }}
+          {{ if .Page.Params.redirect }}
+            <a href="{{ .Page.Params.redirect }}">{{ .Name }}</a>
+          {{ else }}
+            <a href="{{ .URL | relLangURL | safeURL }}"{{ if $currentPage.IsMenuCurrent "main" . }} aria-current="page"{{ end }}>{{ .Name }}</a>
+          {{ end }}
+        {{ end }}
+      </span>
+    </span>
   </span>
 
 </nav>
@@ -205,7 +301,8 @@
 <script>
   (function () {
     var toggle = document.querySelector(".theme-toggle");
-    var pagedHomeLink = document.querySelector(".paged-home-link");
+    var menuToggle = document.querySelector(".nav-menu-toggle");
+    var menuPanel = document.querySelector(".nav-menu-panel");
     var root = document.documentElement;
     var themeColor = document.getElementById("theme-color");
     var storageKey = "site-theme";
@@ -218,36 +315,65 @@
     window.addEventListener("scroll", updateNavState, { passive: true });
     updateNavState();
 
-    if (pagedHomeLink && /\/page\/(?:[2-9]|[1-9][0-9]+)\/?$/.test(window.location.pathname)) {
-      pagedHomeLink.hidden = false;
+    function closeMenu(returnFocus) {
+      if (!menuToggle || !menuPanel) return;
+      menuToggle.setAttribute("aria-expanded", "false");
+      menuToggle.setAttribute("aria-label", "Open menu");
+      menuPanel.hidden = true;
+      if (nav) nav.classList.remove("menu-is-open");
+      if (returnFocus) menuToggle.focus();
     }
 
-    if (!toggle) return;
+    if (menuToggle && menuPanel) {
+      menuToggle.addEventListener("click", function () {
+        var willOpen = menuToggle.getAttribute("aria-expanded") !== "true";
+        menuToggle.setAttribute("aria-expanded", String(willOpen));
+        menuToggle.setAttribute("aria-label", willOpen ? "Close menu" : "Open menu");
+        menuPanel.hidden = !willOpen;
+        if (nav) nav.classList.toggle("menu-is-open", willOpen);
+      });
 
-    function updateToggle() {
-      var isDark = root.getAttribute("data-theme") === "dark";
-      var label = isDark ? "Switch to light mode" : "Switch to dark mode";
+      menuPanel.addEventListener("click", function (event) {
+        if (event.target.closest("a")) closeMenu(false);
+      });
 
-      toggle.setAttribute("aria-pressed", String(isDark));
-      toggle.setAttribute("aria-label", label);
-      toggle.setAttribute("title", label);
-      themeColor.setAttribute("content", isDark ? "#282c34" : "#fff");
+      document.addEventListener("click", function (event) {
+        if (!event.target.closest(".nav-menu")) closeMenu(false);
+      });
+
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && menuToggle.getAttribute("aria-expanded") === "true") {
+          closeMenu(true);
+        }
+      });
     }
 
-    window.addEventListener("site-theme-change", updateToggle);
+    if (toggle) {
+      function updateToggle() {
+        var isDark = root.getAttribute("data-theme") === "dark";
+        var label = isDark ? "Switch to light mode" : "Switch to dark mode";
 
-    toggle.addEventListener("click", function () {
-      var nextTheme = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
-      root.setAttribute("data-theme", nextTheme);
+        toggle.setAttribute("aria-pressed", String(isDark));
+        toggle.setAttribute("aria-label", label);
+        toggle.setAttribute("title", label);
+        if (themeColor) themeColor.setAttribute("content", isDark ? "#282c34" : "#fff");
+      }
 
-      try {
-        localStorage.setItem(storageKey, nextTheme);
-      } catch (error) {}
+      window.addEventListener("site-theme-change", updateToggle);
+
+      toggle.addEventListener("click", function () {
+        var nextTheme = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+        root.setAttribute("data-theme", nextTheme);
+
+        try {
+          localStorage.setItem(storageKey, nextTheme);
+        } catch (error) {}
+
+        updateToggle();
+      });
 
       updateToggle();
-    });
-
-    updateToggle();
+    }
 
     function initCollapsingAvatar() {
       var avatarLink = document.querySelector(".profile-home-link");

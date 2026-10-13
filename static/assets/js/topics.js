@@ -102,21 +102,43 @@
 		return minimum + ((maximum - minimum) * ratio);
 	}
 
+	function seededFraction(seed, salt) {
+		return hashString(seed + ":" + salt) / 4294967296;
+	}
+
 	function createLayout(width, height) {
 		var maxCount = topics.reduce(function (largest, topic) {
 			return Math.max(largest, topic.count);
 		}, 1);
-		var labelLimit = width < 500 ? 14 : (width < 760 ? 20 : 30);
-		var padding = width < 500 ? 34 : 52;
+		var labelLimit = width < 500 ? 9 : (width < 760 ? 20 : 30);
+		var padding = width < 500 ? 30 : 46;
 		var centerX = width / 2;
 		var centerY = height / 2;
+		var cloudWidth = Math.max(120, width - (padding * 2));
+		var cloudHeight = Math.max(120, height - (padding * 2));
+		var lobes = [
+			{ x: -.30, y: .02, rx: .14, ry: .13 },
+			{ x: -.14, y: -.14, rx: .18, ry: .12 },
+			{ x: .02, y: -.04, rx: .20, ry: .15 },
+			{ x: .27, y: -.05, rx: .16, ry: .14 },
+			{ x: -.10, y: .13, rx: .18, ry: .11 },
+			{ x: .15, y: .14, rx: .16, ry: .11 }
+		];
 		var nodes = topics.map(function (topic, index) {
 			var seed = hashString(topic.id);
-			var angle = ((seed % 3600) / 3600) * Math.PI * 2;
-			var orbit = 0.18 + ((((seed >>> 7) % 1000) / 1000) * 0.76);
-			var radiusX = Math.max(20, (width / 2) - padding);
-			var radiusY = Math.max(20, (height / 2) - padding);
-			var fontSize = topicScale(topic.count, 12, width < 500 ? 21 : 29, maxCount);
+			var lobe = lobes[seed % lobes.length];
+			var angle = seededFraction(topic.id, "angle") * Math.PI * 2;
+			var radius = Math.sqrt(seededFraction(topic.id, "radius"));
+			var importance = Math.log(topic.count + 1) / Math.log(maxCount + 1);
+			var centerBias = 1 - (importance * .66);
+			var lobeX = centerX + (lobe.x * cloudWidth * centerBias);
+			var lobeY = centerY + (lobe.y * cloudHeight * centerBias);
+			var organicX = Math.cos(angle) * lobe.rx * cloudWidth * radius * centerBias;
+			var organicY = Math.sin(angle) * lobe.ry * cloudHeight * radius * centerBias;
+			var ripple = Math.sin((angle * 3) + ((seed % 13) / 13)) * .035;
+			var fontSize = topicScale(topic.count, width < 500 ? 13 : 12, width < 500 ? 20 : 29, maxCount);
+			var initialX = lobeX + organicX + (ripple * cloudWidth);
+			var initialY = lobeY + organicY - (ripple * cloudHeight * .55);
 			return {
 				id: topic.id,
 				label: topic.label,
@@ -125,9 +147,13 @@
 				index: index,
 				labeled: index < labelLimit,
 				fontSize: fontSize,
+				labelWidth: Math.min(190, topic.label.length * fontSize * .55),
+				labelSide: initialX < centerX ? -1 : 1,
 				dotRadius: topicScale(topic.count, 2.5, 7.5, maxCount),
-				x: centerX + (Math.cos(angle) * radiusX * orbit),
-				y: centerY + (Math.sin(angle) * radiusY * orbit),
+				x: initialX,
+				y: initialY,
+				anchorX: initialX,
+				anchorY: initialY,
 				vx: 0,
 				vy: 0
 			};
@@ -138,8 +164,8 @@
 			return connection.weight >= 2 && layoutById[connection.source] && layoutById[connection.target];
 		});
 
-		for (var iteration = 0; iteration < 150; iteration += 1) {
-			var cooling = 1 - (iteration / 150);
+		for (var iteration = 0; iteration < 170; iteration += 1) {
+			var cooling = 1 - (iteration / 170);
 			for (var first = 0; first < nodes.length; first += 1) {
 				for (var second = first + 1; second < nodes.length; second += 1) {
 					var firstNode = nodes[first];
@@ -148,7 +174,7 @@
 					var dy = secondNode.y - firstNode.y;
 					var distanceSquared = Math.max(36, (dx * dx) + (dy * dy));
 					var distance = Math.sqrt(distanceSquared);
-					var repulsion = (width < 500 ? 1800 : 2400) / distanceSquared;
+					var repulsion = (width < 500 ? 250 : 700) / distanceSquared;
 					var pushX = (dx / distance) * repulsion * cooling;
 					var pushY = (dy / distance) * repulsion * cooling;
 					firstNode.vx -= pushX;
@@ -164,8 +190,8 @@
 				var dx = target.x - source.x;
 				var dy = target.y - source.y;
 				var distance = Math.max(1, Math.sqrt((dx * dx) + (dy * dy)));
-				var desired = Math.max(118, 190 - (Math.min(connection.weight, 8) * 8));
-				var pull = (distance - desired) * .00075 * cooling;
+				var desired = Math.max(104, 174 - (Math.min(connection.weight, 8) * 7));
+				var pull = (distance - desired) * .0005 * cooling;
 				var pullX = (dx / distance) * pull;
 				var pullY = (dy / distance) * pull;
 				source.vx += pullX;
@@ -175,35 +201,64 @@
 			});
 
 			nodes.forEach(function (node) {
-				node.vx += (centerX - node.x) * .0006 * cooling;
-				node.vy += (centerY - node.y) * .0006 * cooling;
+				var anchorStrength = width < 500 ? .015 : .009;
+				node.vx += (node.anchorX - node.x) * anchorStrength * cooling;
+				node.vy += (node.anchorY - node.y) * anchorStrength * cooling;
+				if (node.x < padding) node.vx += (padding - node.x) * .015;
+				if (node.x > width - padding) node.vx -= (node.x - (width - padding)) * .015;
+				if (node.y < padding) node.vy += (padding - node.y) * .015;
+				if (node.y > height - padding) node.vy -= (node.y - (height - padding)) * .015;
 				node.vx *= .82;
 				node.vy *= .82;
-				node.x = Math.max(padding, Math.min(width - padding, node.x + node.vx));
-				node.y = Math.max(padding, Math.min(height - padding, node.y + node.vy));
+				node.x += node.vx;
+				node.y += node.vy;
 			});
 		}
 
-		for (var settle = 0; settle < 18; settle += 1) {
+		function constrainNode(node) {
+			var edgeVariation = seededFraction(node.id, "edge") * 18;
+			var labelWidth = node.labeled ? node.labelWidth : 0;
+			var leftLimit = padding + edgeVariation;
+			var rightLimit = width - padding - edgeVariation - labelWidth;
+			if (node.labelSide < 0) {
+				leftLimit += labelWidth;
+				rightLimit += labelWidth;
+			}
+			node.x = Math.max(leftLimit, Math.min(rightLimit, node.x));
+			node.y = Math.max(padding + edgeVariation, Math.min(height - padding - edgeVariation, node.y));
+		}
+
+		nodes.forEach(constrainNode);
+
+		for (var settle = 0; settle < 44; settle += 1) {
 			for (var labelFirst = 0; labelFirst < labelLimit; labelFirst += 1) {
 				for (var labelSecond = labelFirst + 1; labelSecond < labelLimit; labelSecond += 1) {
 					var firstLabel = nodes[labelFirst];
 					var secondLabel = nodes[labelSecond];
-					var labelDx = secondLabel.x - firstLabel.x;
+					var firstCenterX = firstLabel.x + (firstLabel.labelSide * (firstLabel.dotRadius + 7 + (firstLabel.labelWidth / 2)));
+					var secondCenterX = secondLabel.x + (secondLabel.labelSide * (secondLabel.dotRadius + 7 + (secondLabel.labelWidth / 2)));
+					var labelDx = secondCenterX - firstCenterX;
 					var labelDy = secondLabel.y - firstLabel.y;
-					var firstWidth = Math.min(170, firstLabel.label.length * firstLabel.fontSize * .55);
-					var secondWidth = Math.min(170, secondLabel.label.length * secondLabel.fontSize * .55);
-					var requiredX = ((firstWidth + secondWidth) / 2) + 12;
-					var requiredY = ((firstLabel.fontSize + secondLabel.fontSize) / 2) + 9;
-					if (Math.abs(labelDx) < requiredX && Math.abs(labelDy) < requiredY) {
-						var direction = labelDy >= 0 ? 1 : -1;
-						var shift = ((requiredY - Math.abs(labelDy)) / 2) + 1;
-						firstLabel.y = Math.max(padding, firstLabel.y - (shift * direction));
-						secondLabel.y = Math.min(height - padding, secondLabel.y + (shift * direction));
+					var overlapX = ((firstLabel.labelWidth + secondLabel.labelWidth) / 2) + 12 - Math.abs(labelDx);
+					var overlapY = ((firstLabel.fontSize + secondLabel.fontSize) / 2) + 8 - Math.abs(labelDy);
+					if (overlapX > 0 && overlapY > 0) {
+						if (width >= 500 && overlapX < overlapY) {
+							var horizontalDirection = labelDx >= 0 ? 1 : -1;
+							var horizontalShift = (overlapX / 2) + 1;
+							firstLabel.x -= horizontalShift * horizontalDirection;
+							secondLabel.x += horizontalShift * horizontalDirection;
+						} else {
+							var verticalDirection = labelDy >= 0 ? 1 : -1;
+							var verticalShift = (overlapY / 2) + 1;
+							firstLabel.y -= verticalShift * verticalDirection;
+							secondLabel.y += verticalShift * verticalDirection;
+						}
 					}
 				}
 			}
 		}
+
+		nodes.forEach(constrainNode);
 
 		return { nodes: nodes, byId: layoutById };
 	}
@@ -279,9 +334,9 @@
 		svg.setAttribute("height", height);
 
 		var title = makeSvgElement("title", { id: graphTitleId });
-		title.textContent = "Interactive topic constellation";
+		title.textContent = "Interactive topic cloud";
 		var description = makeSvgElement("desc", { id: graphDescriptionId });
-		description.textContent = "Topic size represents post count. Lines connect topics that appear together in posts.";
+		description.textContent = "Topics form an organic cloud. Topic size represents post count, and lines connect topics that appear together in posts.";
 		svg.appendChild(title);
 		svg.appendChild(description);
 
@@ -334,12 +389,11 @@
 			var group = makeSvgElement("g", { transform: "translate(" + node.x.toFixed(2) + " " + node.y.toFixed(2) + ")" });
 			var hit = makeSvgElement("circle", { "class": "topic-node-hit", r: 22 });
 			var label = makeSvgElement("text", {
-				x: (node.dotRadius + 7).toFixed(2),
+				x: (node.labelSide * (node.dotRadius + 7)).toFixed(2),
 				y: ".35em",
 				"font-size": node.fontSize.toFixed(2),
-				"text-anchor": node.x > width - 165 ? "end" : "start"
+				"text-anchor": node.labelSide < 0 ? "end" : "start"
 			});
-			if (node.x > width - 165) label.setAttribute("x", (-node.dotRadius - 7).toFixed(2));
 			label.textContent = node.label;
 			group.appendChild(hit);
 			group.appendChild(label);

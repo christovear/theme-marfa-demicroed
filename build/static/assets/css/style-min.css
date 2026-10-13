@@ -12,6 +12,8 @@
 	--separator: #d6d6d6;
 	--accent: #ee4792;
 	--accent-soft: #fcdae9;
+	--menu-red: #ee4792;
+	--menu-red-soft: #fcdae9;
 	--link-text: #000;
 	--link-underline: #fcdae9;
 	--link-hover-text: #000;
@@ -37,6 +39,8 @@
 	--separator: #545e6f;
 	--accent: #3391ff;
 	--accent-soft: #004daa;
+	--menu-red: #c63a62;
+	--menu-red-soft: rgba(134, 24, 57, .38);
 	--link-text: #abb2bf;
 	--link-underline: #861839;
 	--link-hover-text: #abb2bf;
@@ -186,6 +190,10 @@ body nav.main-nav.is-scrolled {
 	box-shadow: var(--nav-shadow);
 }
 
+body nav.main-nav.menu-is-open {
+	z-index: 1200;
+}
+
 .nav-home-target,
 .nav-home-button {
 	display: block;
@@ -226,6 +234,94 @@ nav.main-nav a.nav-home-button:hover {
 	align-items: center !important;
 	justify-content: flex-end;
 	margin-left: auto;
+}
+
+.main-nav .nav-menu {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	margin-left: 12px;
+}
+
+.main-nav .nav-menu-toggle {
+	display: inline-flex !important;
+	align-items: center;
+	justify-content: center;
+	flex-direction: column;
+	gap: 4px;
+	width: 32px;
+	height: 32px;
+	margin: -4px;
+	padding: 7px;
+	color: var(--menu-red);
+	background: transparent;
+	border: 0;
+	border-radius: 7px;
+	cursor: pointer;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+}
+
+.main-nav .nav-menu-toggle:hover,
+.main-nav .nav-menu-toggle[aria-expanded="true"] {
+	background: var(--menu-red-soft);
+}
+
+.main-nav .nav-menu-toggle:focus-visible {
+	outline: 2px solid var(--menu-red);
+	outline-offset: 3px;
+}
+
+.main-nav .nav-menu-line {
+	display: block;
+	width: 18px;
+	height: 2px;
+	border-radius: 2px;
+	background: currentColor;
+}
+
+.main-nav .nav-menu-panel {
+	position: absolute;
+	top: calc(100% + 9px);
+	right: -8px;
+	display: grid;
+	min-width: 190px;
+	max-width: calc(100vw - 24px);
+	padding: 8px;
+	background: var(--nav-bg);
+	border: 1px solid var(--border);
+	border-radius: 0 0 10px 10px;
+	box-shadow: var(--nav-shadow);
+	-webkit-backdrop-filter: blur(12px);
+	backdrop-filter: blur(12px);
+}
+
+.main-nav .nav-menu-panel[hidden] {
+	display: none !important;
+}
+
+.main-nav .nav-menu-panel a {
+	display: block;
+	margin: 0 !important;
+	padding: 10px 12px;
+	color: var(--text-strong);
+	border-radius: 6px;
+	box-shadow: none !important;
+	white-space: nowrap;
+}
+
+.main-nav .nav-menu-panel a:hover,
+.main-nav .nav-menu-panel a:focus-visible,
+.main-nav .nav-menu-panel a[aria-current="page"] {
+	color: var(--text-strong);
+	background: var(--menu-red-soft);
+	box-shadow: none !important;
+}
+
+.main-nav .nav-menu-panel a:focus-visible {
+	outline: 2px solid var(--menu-red);
+	outline-offset: -2px;
 }
 
 .main-nav .nav-brand {
